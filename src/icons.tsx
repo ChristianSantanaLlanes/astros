@@ -2,42 +2,58 @@ import type { Priority, Status } from "./types";
 
 type IconProps = { size?: number; className?: string };
 
+const iconStyle = { display: "block", flexShrink: 0 } as const;
+
 export function StatusIcon({ status, size = 14 }: { status: Status; size?: number }) {
   const s = size;
   if (status === "backlog") {
     return (
-      <svg width={s} height={s} viewBox="0 0 16 16" fill="none" aria-hidden>
-        <circle cx="8" cy="8" r="6" stroke="#62666d" strokeWidth="1.5" strokeDasharray="2.2 2.4" />
+      <svg width={s} height={s} viewBox="0 0 14 14" fill="none" aria-hidden style={iconStyle}>
+        <circle
+          cx="7"
+          cy="7"
+          r="6"
+          stroke="#62666d"
+          strokeWidth="1.5"
+          strokeDasharray="1.4 1.74"
+          strokeDashoffset="0.65"
+        />
       </svg>
     );
   }
   if (status === "todo") {
     return (
-      <svg width={s} height={s} viewBox="0 0 16 16" fill="none" aria-hidden>
-        <circle cx="8" cy="8" r="6" stroke="#8a8f98" strokeWidth="1.5" />
+      <svg width={s} height={s} viewBox="0 0 14 14" fill="none" aria-hidden style={iconStyle}>
+        <circle cx="7" cy="7" r="6" stroke="#8a8f98" strokeWidth="1.5" />
       </svg>
     );
   }
   if (status === "in_progress") {
     return (
-      <svg width={s} height={s} viewBox="0 0 16 16" fill="none" aria-hidden>
-        <circle cx="8" cy="8" r="6" stroke="#f2c94c" strokeWidth="1.5" />
-        <path d="M8 2a6 6 0 0 1 6 6H8V2Z" fill="#f2c94c" />
+      <svg width={s} height={s} viewBox="0 0 14 14" fill="none" aria-hidden style={iconStyle}>
+        <circle cx="7" cy="7" r="6" stroke="#f2c94c" strokeWidth="1.5" />
+        <path d="M7 7V1A6 6 0 0 1 13 7Z" fill="#f2c94c" />
       </svg>
     );
   }
   if (status === "done") {
     return (
-      <svg width={s} height={s} viewBox="0 0 16 16" fill="none" aria-hidden>
-        <circle cx="8" cy="8" r="7" fill="#5e6ad2" />
-        <path d="M5 8.2 7.1 10.4 11.2 5.8" stroke="#f7f8f8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <svg width={s} height={s} viewBox="0 0 14 14" fill="none" aria-hidden style={iconStyle}>
+        <circle cx="7" cy="7" r="7" fill="#5e6ad2" />
+        <path
+          d="M4.2 7.1 6.1 9.1 9.9 4.8"
+          stroke="#fff"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     );
   }
   return (
-    <svg width={s} height={s} viewBox="0 0 16 16" fill="none" aria-hidden>
-      <circle cx="8" cy="8" r="6" stroke="#62666d" strokeWidth="1.5" />
-      <path d="M5.6 5.6 10.4 10.4M10.4 5.6 5.6 10.4" stroke="#62666d" strokeWidth="1.5" strokeLinecap="round" />
+    <svg width={s} height={s} viewBox="0 0 14 14" fill="none" aria-hidden style={iconStyle}>
+      <circle cx="7" cy="7" r="6" stroke="#62666d" strokeWidth="1.5" />
+      <path d="M4.8 4.8 9.2 9.2M9.2 4.8 4.8 9.2" stroke="#62666d" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }
@@ -46,25 +62,32 @@ export function PriorityIcon({ priority, size = 14 }: { priority: Priority; size
   const s = size;
   if (priority === 1) {
     return (
-      <svg width={s} height={s} viewBox="0 0 16 16" fill="none" aria-hidden>
-        <path d="M3 12.5 8 3.5 13 12.5H3Z" fill="#eb5757" />
+      <svg width={s} height={s} viewBox="0 0 14 14" fill="none" aria-hidden style={iconStyle}>
+        <path
+          d="M7 1.6 13.15 12.6H.85L7 1.6Z"
+          fill="#eb5757"
+          stroke="#eb5757"
+          strokeWidth="1.4"
+          strokeLinejoin="round"
+        />
       </svg>
     );
   }
-  const fill = priority === 2 ? "#f2994a" : priority === 3 ? "#f2c94c" : priority === 4 ? "#5e6ad2" : "#3e4146";
-  const bars = [6, 9, 12];
-  const active = priority === 0 ? 0 : priority === 4 ? 1 : priority === 3 ? 2 : 3;
+  const on = "#8a8f98";
+  const off = "#2e3238";
+  const lit = priority === 0 ? 0 : priority === 4 ? 1 : priority === 3 ? 2 : 3;
+  const heights = [3.8, 6.4, 9];
   return (
-    <svg width={s} height={s} viewBox="0 0 16 16" fill="none" aria-hidden>
-      {bars.map((h, i) => (
+    <svg width={s} height={s} viewBox="0 0 14 14" fill="none" aria-hidden style={iconStyle}>
+      {heights.map((h, i) => (
         <rect
           key={h}
-          x={3.5 + i * 3.2}
-          y={14 - h}
-          width="2.2"
+          x={2.7 + i * 3.1}
+          y={11.6 - h}
+          width="1.9"
           height={h}
-          rx="0.6"
-          fill={i < active ? fill : "#2a2e33"}
+          rx="0.5"
+          fill={i < lit ? on : off}
         />
       ))}
     </svg>

@@ -29,37 +29,51 @@ export function IdeaRow({
   onDrop: () => void;
   onDragEnd: () => void;
 }) {
+  const priority = PRIORITIES.find((p) => p.id === idea.priority);
+
   return (
     <div
       id={`row-${idea.id}`}
       className={`row${focused ? " focused" : ""}${selected ? " selected" : ""}${dragging ? " dragging" : ""}${dropTarget ? " drop-target" : ""}`}
-      draggable
+      draggable="true"
       onClick={onFocus}
       onDoubleClick={onOpen}
-      onDragStart={onDragStart}
+      onDragStart={(e) => {
+        e.dataTransfer.setData("text/plain", idea.id);
+        e.dataTransfer.effectAllowed = "move";
+        onDragStart();
+      }}
       onDragOver={(e) => {
         e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
         onDragOver();
       }}
       onDrop={(e) => {
         e.preventDefault();
+        e.stopPropagation();
         onDrop();
       }}
       onDragEnd={onDragEnd}
     >
+      <span className="prio-slot" title={priority?.label}>
+        <PriorityIcon priority={idea.priority} size={14} />
+      </span>
+      <span className="ident">{idea.identifier}</span>
       <button
         type="button"
-        className="icon-btn"
+        className="status-btn"
+        draggable={false}
         aria-label="Change status"
         onClick={(e) => {
           e.stopPropagation();
           onStatus(e.currentTarget);
         }}
       >
-        <StatusIcon status={idea.status} />
+        <StatusIcon status={idea.status} size={14} />
       </button>
-      <span className="ident">{idea.identifier}</span>
-      <span className="title">{idea.title}</span>
+      <span className="title" title={idea.title}>
+        {idea.title}
+      </span>
       <span className="labels">
         {idea.labels.map((label) => (
           <span className="label" key={label}>
@@ -68,10 +82,7 @@ export function IdeaRow({
           </span>
         ))}
       </span>
-      <span className="prio-slot" title={PRIORITIES.find((p) => p.id === idea.priority)?.label}>
-        <PriorityIcon priority={idea.priority} />
-      </span>
-      <span className="ident">{formatTime(idea.updatedAt)}</span>
+      <span className="ident date">{formatTime(idea.updatedAt)}</span>
     </div>
   );
 }

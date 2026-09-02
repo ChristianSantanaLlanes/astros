@@ -1,6 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Kbd, StatusIcon } from "../icons";
 import { STATUSES, type Status } from "../types";
+
+const MENU_W = 220;
+const ITEM_H = 32;
+const MENU_PAD = 8;
 
 export function StatusMenu({
   x,
@@ -15,15 +19,80 @@ export function StatusMenu({
   onClose: () => void;
   onPick: (status: Status) => void;
 }) {
+  const root = useRef<HTMLDivElement>(null);
+  const pos = useMemo(() => {
+    const h = STATUSES.length * ITEM_H + MENU_PAD;
+    return {
+      left: Math.max(8, Math.min(x, window.innerWidth - MENU_W - 8)),
+      top: Math.max(8, Math.min(y, window.innerHeight - h - 8)),
+    };
+  }, [x, y]);
+
+  useEffect(() => {
+    const currentBtn = root.current?.querySelector<HTMLButtonElement>(".menu-item.active");
+    currentBtn?.focus();
+  }, []);
+
   useEffect(() => {
     const close = () => onClose();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
+        return;
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const byNum = STATUSES.find((s) => s.shortcut === e.key);
+      if (byNum) {
+        e.preventDefault();
+        e.stopPropagation();
+        onPick(byNum.id);
+        return;
+      }
+      const buttons = [...(root.current?.querySelectorAll<HTMLButtonElement>(".menu-item") ?? [])];
+      const i = buttons.findIndex((b) => b === document.activeElement);
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        e.stopPropagation();
+        const dir = e.key === "ArrowDown" ? 1 : -1;
+        const next = buttons[(Math.max(i, 0) + dir + buttons.length) % buttons.length];
+        next?.focus();
+        return;
+      }
+      if (e.key === "Enter" && i >= 0) {
+        e.preventDefault();
+        e.stopPropagation();
+        const id = STATUSES[i]?.id;
+        if (id) onPick(id);
+      }
+    };
     window.addEventListener("mousedown", close);
-    return () => window.removeEventListener("mousedown", close);
-  }, [onClose]);
+    window.addEventListener("keydown", onKey, true);
+    return () => {
+      window.removeEventListener("mousedown", close);
+      window.removeEventListener("keydown", onKey, true);
+    };
+  }, [onClose, onPick]);
+
   return (
-    <div className="menu" style={{ left: x, top: y }} onMouseDown={(e) => e.stopPropagation()}>
+    <div
+      ref={root}
+      className="menu"
+      role="menu"
+      aria-label="Change status"
+      style={{ left: pos.left, top: pos.top }}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
       {STATUSES.map((s) => (
-        <button key={s.id} className={`menu-item${s.id === current ? " active" : ""}`} type="button" onClick={() => onPick(s.id)}>
+        <button
+          key={s.id}
+          role="menuitem"
+          className={`menu-item${s.id === current ? " active" : ""}`}
+          type="button"
+          onClick={() => onPick(s.id)}
+          onMouseEnter={(e) => e.currentTarget.focus()}
+        >
           <StatusIcon status={s.id} />
           {s.label}
           <span className="spacer" />
