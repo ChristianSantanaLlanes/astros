@@ -111,6 +111,11 @@ export function App() {
   const openIdea = ideas.find((i) => i.id === openId) ?? null;
   const flash = (msg: string) => setToast(msg);
 
+  const selectView = (next: View) => {
+    setView(next);
+    setOpenId(null);
+  };
+
   const openCreate = () => {
     setFocusId(null);
     setStatusMenu(null);
@@ -363,9 +368,9 @@ export function App() {
           <Kbd>⌘K</Kbd>
         </button>
         <div className="nav-section">
-          <NavItem icon={<InboxIcon />} label="Inbox" count={counts.inbox} active={view === "inbox"} onClick={() => setView("inbox")} />
-          <NavItem icon={<ViewsIcon />} label="My issues" count={counts.active} active={view === "active"} onClick={() => setView("active")} />
-          <NavItem icon={<ViewsIcon />} label="All issues" count={counts.all} active={view === "all"} onClick={() => setView("all")} />
+          <NavItem icon={<InboxIcon />} label="Inbox" count={counts.inbox} active={view === "inbox"} onClick={() => selectView("inbox")} />
+          <NavItem icon={<ViewsIcon />} label="My issues" count={counts.active} active={view === "active"} onClick={() => selectView("active")} />
+          <NavItem icon={<ViewsIcon />} label="All issues" count={counts.all} active={view === "all"} onClick={() => selectView("all")} />
         </div>
         <div className="nav-label">Status</div>
         <div className="nav-section">
@@ -376,7 +381,7 @@ export function App() {
               label={s.label}
               count={ideas.filter((i) => i.status === s.id).length}
               active={view === s.id}
-              onClick={() => setView(s.id)}
+              onClick={() => selectView(s.id)}
             />
           ))}
         </div>
@@ -391,7 +396,6 @@ export function App() {
             idea={openIdea}
             onBack={() => setOpenId(null)}
             onChange={(next) => void patch(openIdea.id, next)}
-            onDelete={() => void remove(openIdea.id)}
           />
         ) : (
           <>

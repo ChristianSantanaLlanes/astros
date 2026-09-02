@@ -41,12 +41,10 @@ export function Detail({
   idea,
   onBack,
   onChange,
-  onDelete,
 }: {
   idea: Idea;
   onBack: () => void;
   onChange: (patch: Partial<Pick<Idea, "title" | "description" | "status" | "priority" | "labels">>) => void;
-  onDelete: () => void;
 }) {
   const [title, setTitle] = useState(idea.title);
   const [description, setDescription] = useState(idea.description);
@@ -112,7 +110,7 @@ export function Detail({
           <StatusIcon status={idea.status} />
           <span className="ident">{idea.identifier}</span>
           <span className="spacer" />
-          <button className="icon-btn" type="button" onClick={onDelete} aria-label="Delete">
+          <button className="icon-btn" type="button" onClick={onBack} aria-label="Close">
             <CloseIcon />
           </button>
         </div>
