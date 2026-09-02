@@ -1,15 +1,31 @@
-import { InboxIcon, Kbd } from "../icons";
+import { InboxIcon, Kbd, SearchIcon } from "../icons";
 
-export function Empty({ query, onCreate, onClear }: { query: string; onCreate: () => void; onClear: () => void }) {
+function clip(query: string, max = 48): string {
+  const text = query.trim();
+  if (text.length <= max) return text;
+  return `${text.slice(0, max - 1)}…`;
+}
+
+export function Empty({
+  query,
+  onCreate,
+  onClear,
+}: {
+  query: string;
+  onCreate: () => void;
+  onClear: () => void;
+}) {
+  const searching = query.trim().length > 0;
+
   return (
     <div className="empty">
-      <div className="empty-art">
-        <InboxIcon size={28} />
+      <div className="empty-art" aria-hidden>
+        {searching ? <SearchIcon size={28} /> : <InboxIcon size={28} />}
       </div>
-      {query ? (
+      {searching ? (
         <>
-          <h2>No ideas match “{query}”</h2>
-          <p>Try another identifier, title fragment, or label. Search is instant and local.</p>
+          <h2>No matching ideas</h2>
+          <p>No identifier, title, or label matches “{clip(query)}”.</p>
           <div className="hint-row">
             <button className="chip" type="button" onClick={onClear}>
               Clear search
@@ -21,8 +37,8 @@ export function Empty({ query, onCreate, onClear }: { query: string; onCreate: (
         </>
       ) : (
         <>
-          <h2>No ideas yet</h2>
-          <p>Capture the next one in a single keystroke. Title, then Cmd+Enter. Stay in flow.</p>
+          <h2>No ideas</h2>
+          <p>There are no ideas in this view.</p>
           <div className="hint-row">
             <button className="primary" type="button" onClick={onCreate}>
               New idea
