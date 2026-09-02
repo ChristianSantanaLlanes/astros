@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.env.local
+.env.production
+.convex/
+*.log
+.DS_Store
+.vite/
+coverage/

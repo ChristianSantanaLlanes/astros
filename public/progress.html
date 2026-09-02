@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="refresh" content="8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Forge — progreso</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #08090a;
+        --panel: #0f1011;
+        --text: #f7f8f8;
+        --muted: #8a8f98;
+        --accent: #5e6ad2;
+        --win: #4ade80;
+        --lose: #f87171;
+        --go: #a8b1ff;
+      }
+      html,
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+        font-feature-settings: "cv01", "ss03";
+      }
+      main {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 40px 20px 80px;
+      }
+      .kicker {
+        color: #62666d;
+        letter-spacing: 0.12em;
+        font-size: 11px;
+        font-weight: 510;
+      }
+      h1 {
+        font-size: 28px;
+        letter-spacing: -0.03em;
+        margin: 8px 0;
+      }
+      .lede {
+        color: var(--muted);
+        line-height: 1.5;
+      }
+      a {
+        color: #828fff;
+      }
+      .card {
+        display: grid;
+        grid-template-columns: 180px 130px 1fr;
+        gap: 12px;
+        padding: 14px 16px;
+        margin: 10px 0;
+        background: var(--panel);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 10px;
+      }
+      .badge {
+        height: 22px;
+        display: inline-flex;
+        align-items: center;
+        padding: 0 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        width: fit-content;
+      }
+      .go {
+        background: rgba(94, 106, 210, 0.18);
+        color: var(--go);
+      }
+      .wait {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--muted);
+      }
+      .win {
+        background: rgba(39, 166, 68, 0.16);
+        color: var(--win);
+      }
+      .lose {
+        background: rgba(235, 87, 87, 0.16);
+        color: var(--lose);
+      }
+      p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      @media (max-width: 720px) {
+        .card {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="kicker">FORGE · LIVE</div>
+      <h1>Progreso contra Linear Issues</h1>
+      <p class="lede">
+        App real, no mock. Cada pieza se construye y se juzga a ciegas frente a
+        <a href="https://linear.app">linear.app</a>. Esta página se recarga sola.
+        <a href="/">Abrir Forge</a>
+      </p>
+      <div class="card">
+        <strong>Captura rápida</strong>
+        <span class="badge go">construyendo</span>
+        <p>C abre composer. Crítica ciega pendiente de capturas de Linear.</p>
+      </div>
+      <div class="card">
+        <strong>Lista</strong>
+        <span class="badge go">construyendo</span>
+        <p>Filas 36px, FOR-n, grupos por estado. A la espera de Linear Issues desktop/móvil.</p>
+      </div>
+      <div class="card">
+        <strong>Teclado</strong>
+        <span class="badge wait">en cola</span>
+        <p>j/k, x, Enter, Esc, ⌘K, /.</p>
+      </div>
+      <div class="card">
+        <strong>Estados</strong>
+        <span class="badge wait">en cola</span>
+        <p>Backlog → Todo → In Progress → Done / Canceled.</p>
+      </div>
+      <div class="card">
+        <strong>Detalle</strong>
+        <span class="badge wait">en cola</span>
+        <p>Título, descripción, propiedades, comentarios persistentes.</p>
+      </div>
+      <div class="card">
+        <strong>Búsqueda</strong>
+        <span class="badge wait">en cola</span>
+        <p>⌘K y / sobre id, título y labels.</p>
+      </div>
+      <div class="card">
+        <strong>Vacío</strong>
+        <span class="badge wait">en cola</span>
+        <p>Empty states con CTA real.</p>
+      </div>
+      <div class="card">
+        <strong>Movimiento</strong>
+        <span class="badge wait">en cola</span>
+        <p>Drag entre grupos y reorden con Alt+↑/↓.</p>
+      </div>
+    </main>
+  </body>
+</html>
