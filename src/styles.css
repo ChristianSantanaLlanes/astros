@@ -643,6 +643,11 @@ button {
   color: #62666d;
 }
 
+.capture-owner {
+  background: transparent;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
 .inline-capture-hint {
   grid-area: labels;
   color: #62666d;

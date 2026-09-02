@@ -1,18 +1,20 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Kbd, PriorityIcon, StatusIcon } from "../icons";
+import { PriorityIcon, StatusIcon } from "../icons";
 import { PRIORITIES, STATUSES, statusLabel, type Priority, type Status } from "../types";
 
 export function Composer({
+  nextIdentifier,
   onClose,
   onCreate,
 }: {
+  nextIdentifier: string;
   onClose: () => void;
   onCreate: (title: string, description: string, status: Status, priority: Priority) => Promise<void>;
 }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<Status>("todo");
-  const [priority, setPriority] = useState<Priority>(0);
+  const [priority, setPriority] = useState<Priority>(3);
   const [busy, setBusy] = useState(false);
   const [openBody, setOpenBody] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
@@ -61,7 +63,7 @@ export function Composer({
             <PriorityIcon priority={priority} size={14} />
           </button>
         </span>
-        <span className="ident">FOR</span>
+        <span className="ident">{nextIdentifier}</span>
         <button type="button" className="status-btn" aria-label={`Status ${statusLabel(status)}`} onClick={cycleStatus}>
           <StatusIcon status={status} size={14} />
         </button>
@@ -85,9 +87,9 @@ export function Composer({
             }
           }}
         />
-        <span className="inline-capture-hint">
-          <Kbd>↵</Kbd>
-        </span>
+        <span className="labels" aria-hidden />
+        <span className="owner capture-owner" aria-hidden />
+        <span className="ident date" aria-hidden />
       </div>
       {openBody ? (
         <textarea

@@ -29,7 +29,11 @@ async function desktop() {
   await page.keyboard.press("Escape");
 
   await page.keyboard.press("c");
-  await page.waitForSelector(".inline-capture, .composer", { timeout: 5000 });
+  await page.waitForSelector(".inline-capture-title, .inline-capture, .composer", { timeout: 5000 });
+  const title = await page.$(".inline-capture-title");
+  if (title) {
+    await title.type("Handle GPS dropouts gracefully", { delay: 12 });
+  }
   await shot(page, "captura-desktop");
   await page.keyboard.press("Escape");
   await page.waitForSelector(".inline-capture, .composer", { hidden: true, timeout: 5000 }).catch(() => undefined);

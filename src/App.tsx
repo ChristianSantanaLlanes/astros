@@ -106,6 +106,12 @@ export function App() {
   const openIdea = ideas.find((i) => i.id === openId) ?? null;
   const flash = (msg: string) => setToast(msg);
 
+  const openCreate = () => {
+    setFocusId(null);
+    setStatusMenu(null);
+    setOverlay("create");
+  };
+
   const create = async (title: string, description = "", status: Status = "todo", priority: Priority = 0) => {
     const idea = await createIdea({ title, description, status, priority });
     await reload();
@@ -253,7 +259,7 @@ export function App() {
 
       if (letter === "c" && !e.shiftKey && !e.repeat) {
         e.preventDefault();
-        setOverlay("create");
+        openCreate();
         return;
       }
       if (key === "/" && !e.repeat) {
@@ -394,7 +400,7 @@ export function App() {
               </button>
               <span className="spacer" />
               <span style={{ color: "var(--text-4)", fontSize: 12 }}>{visible.length}</span>
-              <button className="primary" type="button" onClick={() => setOverlay("create")} aria-label="New idea">
+              <button className="primary" type="button" onClick={openCreate} aria-label="New idea">
                 <PlusIcon size={14} />
                 <span className="primary-label">New idea</span>
                 <Kbd>C</Kbd>
@@ -403,6 +409,7 @@ export function App() {
             <div className="list">
               {overlay === "create" && (
                 <Composer
+                  nextIdentifier={`FOR-${ideas.reduce((n, idea) => Math.max(n, idea.number), 0) + 1}`}
                   onClose={() => setOverlay("none")}
                   onCreate={async (title, description, status, priority) => {
                     await create(title, description, status, priority);
@@ -411,7 +418,7 @@ export function App() {
                 />
               )}
               {visible.length === 0 && overlay !== "create" ? (
-                <Empty query={query} onCreate={() => setOverlay("create")} onClear={() => setQuery("")} />
+                <Empty query={query} onCreate={openCreate} onClear={() => setQuery("")} />
               ) : (
                 grouped.map((group) => (
                   <section key={group.status} className="group">
@@ -497,7 +504,7 @@ export function App() {
         <CommandPalette
           ideas={ideas}
           onClose={() => setOverlay("none")}
-          onCreate={() => setOverlay("create")}
+          onCreate={openCreate}
           onOpen={(id) => {
             setOpenId(id);
             setOverlay("none");

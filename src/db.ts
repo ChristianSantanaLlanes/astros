@@ -29,7 +29,7 @@ let dbPromise: Promise<IDBPDatabase<ForgeDB>> | null = null;
 
 function db(): Promise<IDBPDatabase<ForgeDB>> {
   if (!dbPromise) {
-    dbPromise = openDB<ForgeDB>("forge-ideas-3", 1, {
+    dbPromise = openDB<ForgeDB>("forge-ideas-4", 1, {
       upgrade(database) {
         const ideas = database.createObjectStore("ideas", { keyPath: "id" });
         ideas.createIndex("by_status_order", ["status", "order"]);
@@ -61,8 +61,14 @@ export async function ensureSeed(): Promise<void> {
   await tx.objectStore("comments").put({
     id: "seed-comment-1",
     ideaId: "seed-1",
-    body: "Ship capture as a list row. A floating dialog already lost against Linear.",
+    body: "Keep capture as a list row — same cells as every issue.",
     createdAt: now - 86_400_000,
+  });
+  await tx.objectStore("comments").put({
+    id: "seed-comment-2",
+    ideaId: "seed-1",
+    body: "Cmd+Enter should create and leave the composer open for the next idea.",
+    createdAt: now - 36_000_000,
   });
   await tx.objectStore("meta").put({
     key: "counters",

@@ -27,7 +27,7 @@ export const PIECES: Piece[] = [
     brief: "C escribe en una fila de la lista, no en un diálogo.",
     status: "lost",
     winner: "linear",
-    gap: "Ronda 1: diálogo + CTA lila. Ronda 2: fila inline, sin halo índigo.",
+    gap: "Ronda 2: parecía un filtro. Ronda 3: FOR-n + barras de prioridad + título escrito.",
     round: 2,
   },
   {
@@ -63,7 +63,7 @@ export const PIECES: Piece[] = [
     brief: "Título, descripción, activity y propiedades.",
     status: "lost",
     winner: "linear",
-    gap: "Ronda 1: vacío. Ronda 2: Activity + comentario sembrado + sidebar.",
+    gap: "Ronda 2: Activity hueca. Ronda 3: created + cambio de estado + comentarios + assignee.",
     round: 2,
   },
   {

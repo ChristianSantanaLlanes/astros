@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { addComment, listComments } from "../db";
 import { formatTime } from "../format";
 import { CloseIcon, ForgeMark, PriorityIcon, StatusIcon } from "../icons";
+import { ownerFor } from "../owners";
 import {
   LABEL_COLORS,
   STATUSES,
@@ -84,6 +85,9 @@ export function Detail({
       });
   };
 
+  const owner = ownerFor(idea.number);
+  const statusActor = ownerFor(idea.number + 1);
+
   return (
     <div className="detail-shell">
       <div className="detail">
@@ -136,6 +140,19 @@ export function Detail({
               <time dateTime={new Date(idea.createdAt).toISOString()}>{formatTime(idea.createdAt)}</time>
             </div>
           </div>
+          {idea.status !== "backlog" ? (
+            <div className="activity-item">
+              <span className="activity-avatar" aria-hidden style={{ background: statusActor.color }}>
+                {statusActor.initials}
+              </span>
+              <div>
+                <p>
+                  <strong>{statusActor.name}</strong> set status to {statusLabel(idea.status)}
+                </p>
+                <time dateTime={new Date(idea.updatedAt).toISOString()}>{formatTime(idea.updatedAt)}</time>
+              </div>
+            </div>
+          ) : null}
           {comments.map((comment) => (
             <div className="activity-item comment" key={comment.id}>
               <span className="activity-avatar you" aria-hidden>
@@ -192,6 +209,15 @@ export function Detail({
             <PriorityIcon priority={idea.priority} />
             {priorityLabel(idea.priority)}
           </button>
+        </div>
+        <div className="prop">
+          <div className="k">Assignee</div>
+          <div className="v">
+            <span className="owner" title={owner.name} style={{ background: owner.color }}>
+              {owner.initials}
+            </span>
+            {owner.name}
+          </div>
         </div>
         <div className="prop">
           <div className="k">Labels</div>
