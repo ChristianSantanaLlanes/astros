@@ -396,10 +396,10 @@ export function App() {
               </button>
               <button className={`chip${query ? " active" : ""}`} type="button" onClick={() => setOverlay("search")}>
                 <FilterIcon size={14} />
-                {query ? query : "Filter"}
+                <span className="filter-label">{query ? query : "Filter"}</span>
               </button>
               <span className="spacer" />
-              <span style={{ color: "var(--text-4)", fontSize: 12 }}>{visible.length}</span>
+              <span className="topbar-count" style={{ color: "var(--text-4)", fontSize: 12 }}>{visible.length}</span>
               <button className="primary" type="button" onClick={openCreate} aria-label="New idea">
                 <PlusIcon size={14} />
                 <span className="primary-label">New idea</span>

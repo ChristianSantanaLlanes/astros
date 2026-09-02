@@ -214,6 +214,7 @@ button {
   margin: 0;
   font-size: 13px;
   font-variation-settings: "wght" 510;
+  white-space: nowrap;
 }
 
 .chip {
@@ -614,14 +615,17 @@ button {
   outline: none;
   box-shadow: none;
   background: transparent;
+  cursor: text;
 }
 
 .inline-capture-row:focus-within {
   background: rgba(255, 255, 255, 0.03);
 }
 
-.inline-capture-row {
-  cursor: text;
+.inline-capture-row .status-btn {
+  grid-area: status;
+  min-width: 16px;
+  z-index: 1;
 }
 
 .inline-capture-title {
@@ -1125,7 +1129,7 @@ button {
   align-items: center;
   gap: 8px;
   height: 32px;
-  padding: 0 8px;
+  padding: 0 8px 0 4px;
   border-radius: 6px;
   width: 100%;
   text-align: left;
@@ -1133,6 +1137,13 @@ button {
   font-size: 13px;
   font-variation-settings: "wght" 450;
   outline: none;
+}
+
+.menu-tick {
+  width: 14px;
+  height: 14px;
+  color: var(--text);
+  flex-shrink: 0;
 }
 
 .menu-item:hover,
@@ -1273,6 +1284,19 @@ button {
     width: 32px;
     padding: 0;
     justify-content: center;
+  }
+  .filter-label,
+  .topbar-count {
+    display: none;
+  }
+  .topbar {
+    padding: 0 10px;
+    gap: 6px;
+  }
+  .owner {
+    width: 16px;
+    height: 16px;
+    font-size: 7px;
   }
   .detail-shell {
     grid-template-columns: 1fr;

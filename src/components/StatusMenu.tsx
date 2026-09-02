@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { Kbd, StatusIcon } from "../icons";
+import { CheckIcon, Kbd, StatusIcon } from "../icons";
 import { STATUSES, type Status } from "../types";
 
 const MENU_W = 220;
@@ -88,13 +88,17 @@ export function StatusMenu({
       {STATUSES.map((s) => (
         <button
           key={s.id}
-          role="menuitem"
+          role="menuitemradio"
+          aria-checked={s.id === current}
           className={`menu-item${s.id === current ? " active" : ""}`}
           type="button"
           onClick={() => onPick(s.id)}
           onMouseEnter={(e) => e.currentTarget.focus()}
         >
-          <StatusIcon status={s.id} />
+          <span className="menu-tick" aria-hidden>
+            {s.id === current ? <CheckIcon /> : null}
+          </span>
+          <StatusIcon status={s.id} outline={s.id === "done" && s.id !== current} />
           {s.label}
           <span className="spacer" />
           <Kbd>{s.shortcut}</Kbd>

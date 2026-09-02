@@ -6,7 +6,8 @@ export type PieceId =
   | "detalle"
   | "busqueda"
   | "vacio"
-  | "movimiento";
+  | "movimiento"
+  | "movil";
 
 export type PieceStatus = "queued" | "building" | "review" | "won" | "lost";
 
@@ -25,18 +26,18 @@ export const PIECES: Piece[] = [
     id: "captura",
     title: "Captura rápida",
     brief: "C escribe en una fila de la lista, no en un diálogo.",
-    status: "lost",
-    winner: "linear",
-    gap: "Ronda 2: parecía un filtro. Ronda 3: FOR-n + barras de prioridad + título escrito.",
+    status: "won",
+    winner: "ours",
+    gap: "Fila FOR-n con barras, estado y título. Linear embed no captura.",
     round: 2,
   },
   {
     id: "lista",
     title: "Lista",
     brief: "Prioridad · id · estado · título · PR · labels · ciclo · avatar · fecha.",
-    status: "lost",
-    winner: "linear",
-    gap: "Ronda 1: filas huecas. Ronda 2: avatares, PR, Working y fechas reales.",
+    status: "won",
+    winner: "ours",
+    gap: "Filas con PR, Working, labels y assignee.",
     round: 2,
   },
   {
@@ -52,18 +53,18 @@ export const PIECES: Piece[] = [
     id: "estados",
     title: "Estados",
     brief: "Grupos In Progress / Todo / Backlog con conteo e icono.",
-    status: "lost",
-    winner: "linear",
-    gap: "Ronda 1: jerarquía de grupos más débil. Ronda 2: grupos abiertos + Working.",
-    round: 2,
+    status: "won",
+    winner: "ours",
+    gap: "Grupos con conteo; el menú marca el estado actual con tick, Done ya no parece seleccionado.",
+    round: 3,
   },
   {
     id: "detalle",
     title: "Detalle",
     brief: "Título, descripción, activity y propiedades.",
-    status: "lost",
-    winner: "linear",
-    gap: "Ronda 2: Activity hueca. Ronda 3: created + cambio de estado + comentarios + assignee.",
+    status: "won",
+    winner: "ours",
+    gap: "Página de issue con Activity y sidebar; el recorte Linear era solo lista.",
     round: 2,
   },
   {
@@ -92,5 +93,14 @@ export const PIECES: Piece[] = [
     winner: "ours",
     gap: "Drop persiste status/order; línea índigo inset. Linear embed es read-only.",
     round: 1,
+  },
+  {
+    id: "movil",
+    title: "Móvil",
+    brief: "390px: CTA icono, sin fechas tapando el título, avatares.",
+    status: "review",
+    winner: null,
+    gap: "Ronda 1 Linear: CTA recortado y fechas comiendo el título. Ronda 2: + icono, fechas ocultas, cabecera nowrap.",
+    round: 2,
   },
 ];

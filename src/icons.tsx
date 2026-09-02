@@ -4,7 +4,15 @@ type IconProps = { size?: number; className?: string };
 
 const iconStyle = { display: "block", flexShrink: 0, overflow: "visible" } as const;
 
-export function StatusIcon({ status, size = 14 }: { status: Status; size?: number }) {
+export function StatusIcon({
+  status,
+  size = 14,
+  outline = false,
+}: {
+  status: Status;
+  size?: number;
+  outline?: boolean;
+}) {
   const s = size;
   if (status === "backlog") {
     return (
@@ -24,7 +32,7 @@ export function StatusIcon({ status, size = 14 }: { status: Status; size?: numbe
   if (status === "todo") {
     return (
       <svg width={s} height={s} viewBox="0 0 14 14" fill="none" aria-hidden style={iconStyle}>
-        <circle cx="7" cy="7" r="6" stroke="#8a8f98" strokeWidth="1.5" />
+        <circle cx="7" cy="7" r="6" stroke="#c9ced6" strokeWidth="1.5" />
       </svg>
     );
   }
@@ -37,6 +45,21 @@ export function StatusIcon({ status, size = 14 }: { status: Status; size?: numbe
     );
   }
   if (status === "done") {
+    if (outline) {
+      return (
+        <svg width={s} height={s} viewBox="0 0 14 14" fill="none" aria-hidden style={iconStyle}>
+          <circle cx="7" cy="7" r="6" stroke="#5e6ad2" strokeWidth="1.5" />
+          <path
+            fill="none"
+            stroke="#5e6ad2"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M4.2 7.1 6.15 9.05 9.8 5.1"
+          />
+        </svg>
+      );
+    }
     return (
       <svg width={s} height={s} viewBox="0 0 14 14" fill="none" aria-hidden style={iconStyle}>
         <circle cx="7" cy="7" r="7" fill="#5e6ad2" />
@@ -172,6 +195,20 @@ export function CloseIcon({ size = 16, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className} aria-hidden>
       <path d="M4 4l8 8M12 4 4 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function CheckIcon({ size = 14, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 14 14" fill="none" className={className} aria-hidden>
+      <path
+        d="M3.2 7.2 5.7 9.7 10.8 4.2"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
