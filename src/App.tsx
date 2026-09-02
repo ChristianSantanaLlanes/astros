@@ -401,7 +401,16 @@ export function App() {
               </button>
             </header>
             <div className="list">
-              {visible.length === 0 ? (
+              {overlay === "create" && (
+                <Composer
+                  onClose={() => setOverlay("none")}
+                  onCreate={async (title, description, status, priority) => {
+                    await create(title, description, status, priority);
+                    setOverlay("none");
+                  }}
+                />
+              )}
+              {visible.length === 0 && overlay !== "create" ? (
                 <Empty query={query} onCreate={() => setOverlay("create")} onClear={() => setQuery("")} />
               ) : (
                 grouped.map((group) => (
@@ -484,15 +493,6 @@ export function App() {
         )}
       </main>
 
-      {overlay === "create" && (
-        <Composer
-          onClose={() => setOverlay("none")}
-          onCreate={async (title, description, status, priority) => {
-            await create(title, description, status, priority);
-            setOverlay("none");
-          }}
-        />
-      )}
       {overlay === "command" && (
         <CommandPalette
           ideas={ideas}

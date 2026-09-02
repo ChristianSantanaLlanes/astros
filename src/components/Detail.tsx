@@ -1,10 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { addComment, listComments } from "../db";
 import { formatTime } from "../format";
-import { CloseIcon, PriorityIcon, StatusIcon } from "../icons";
+import { CloseIcon, ForgeMark, PriorityIcon, StatusIcon } from "../icons";
 import {
   LABEL_COLORS,
-  PRIORITIES,
   STATUSES,
   priorityLabel,
   statusLabel,
@@ -90,8 +89,9 @@ export function Detail({
       <div className="detail">
         <div className="detail-head">
           <button className="chip" type="button" onClick={onBack}>
-            All ideas
+            My issues
           </button>
+          <StatusIcon status={idea.status} />
           <span className="ident">{idea.identifier}</span>
           <span className="spacer" />
           <button className="icon-btn" type="button" onClick={onDelete} aria-label="Delete">
@@ -123,25 +123,50 @@ export function Detail({
           onChange={(e) => setDescription(e.target.value)}
           onBlur={commitDescription}
         />
-        <div className="comments">
+        <section className="activity">
+          <h2 className="activity-label">Activity</h2>
+          <div className="activity-item">
+            <span className="activity-avatar" aria-hidden>
+              <ForgeMark size={18} />
+            </span>
+            <div>
+              <p>
+                <strong>Forge</strong> created the issue
+              </p>
+              <time dateTime={new Date(idea.createdAt).toISOString()}>{formatTime(idea.createdAt)}</time>
+            </div>
+          </div>
           {comments.map((comment) => (
-            <div className="comment" key={comment.id}>
-              <time dateTime={new Date(comment.createdAt).toISOString()}>{formatTime(comment.createdAt)}</time>
-              {comment.body}
+            <div className="activity-item comment" key={comment.id}>
+              <span className="activity-avatar you" aria-hidden>
+                Y
+              </span>
+              <div>
+                <p>
+                  <strong>You</strong>
+                </p>
+                <time dateTime={new Date(comment.createdAt).toISOString()}>{formatTime(comment.createdAt)}</time>
+                <div className="comment-body">{comment.body}</div>
+              </div>
             </div>
           ))}
-          <input
-            className="comment-input"
-            placeholder="Leave a comment…  Enter to send"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
-              e.preventDefault();
-              sendComment();
-            }}
-          />
-        </div>
+          <div className="activity-item compose">
+            <span className="activity-avatar you" aria-hidden>
+              Y
+            </span>
+            <input
+              className="comment-input"
+              placeholder="Leave a comment…"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+                e.preventDefault();
+                sendComment();
+              }}
+            />
+          </div>
+        </section>
       </div>
       <aside className="props">
         <div className="prop">
@@ -165,14 +190,14 @@ export function Detail({
             onClick={() => onChange({ priority: cyclePriority(idea.priority) })}
           >
             <PriorityIcon priority={idea.priority} />
-            {PRIORITIES.find((p) => p.id === idea.priority)?.label}
+            {priorityLabel(idea.priority)}
           </button>
         </div>
         <div className="prop">
           <div className="k">Labels</div>
-          <div className="v" style={{ height: "auto", padding: "6px 0", flexWrap: "wrap" }}>
+          <div className="v labels-v">
             {idea.labels.length === 0 ? (
-              <span style={{ color: "var(--text-4)" }}>Empty</span>
+              <span className="muted">No labels</span>
             ) : (
               idea.labels.map((label) => (
                 <span className="label" key={label}>

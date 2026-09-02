@@ -14,11 +14,11 @@ export function Composer({
   const [status, setStatus] = useState<Status>("todo");
   const [priority, setPriority] = useState<Priority>(0);
   const [busy, setBusy] = useState(false);
+  const [openBody, setOpenBody] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const node = titleRef.current ?? document.getElementById("forge-composer-title");
-    if (node instanceof HTMLElement) node.focus();
+    titleRef.current?.focus();
   }, []);
 
   const submit = () => {
@@ -35,76 +35,70 @@ export function Composer({
     setPriority(((priority + 1) % 5) as Priority);
   };
 
-  const growBody = (el: HTMLTextAreaElement) => {
-    el.style.height = "auto";
-    el.style.height = `${Math.max(128, Math.min(el.scrollHeight, 280))}px`;
-  };
-
-  const canCreate = Boolean(title.trim()) && !busy;
-  const priorityName = PRIORITIES.find((p) => p.id === priority)?.label;
+  const priorityName = PRIORITIES.find((p) => p.id === priority)?.label ?? "No priority";
 
   return (
-    <div className="overlay" onMouseDown={onClose}>
-      <form
-        className="composer"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="forge-composer-title"
-        onMouseDown={(e) => e.stopPropagation()}
-        onSubmit={(e) => {
+    <form
+      className="inline-capture"
+      onSubmit={(e) => {
+        e.preventDefault();
+        submit();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          onClose();
+        }
+        if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
           e.preventDefault();
           submit();
-        }}
-        onKeyDown={(e) => {
-          if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-            e.preventDefault();
-            submit();
-          }
-        }}
-      >
+        }
+      }}
+    >
+      <div className="row inline-capture-row focused">
+        <span className="prio-slot">
+          <button type="button" className="icon-btn" aria-label={`Priority ${priorityName}`} onClick={cyclePriority}>
+            <PriorityIcon priority={priority} size={14} />
+          </button>
+        </span>
+        <span className="ident">FOR</span>
+        <button type="button" className="status-btn" aria-label={`Status ${statusLabel(status)}`} onClick={cycleStatus}>
+          <StatusIcon status={status} size={14} />
+        </button>
         <input
           ref={titleRef}
-          id="forge-composer-title"
-          className="composer-title"
-          placeholder="Idea title"
+          className="inline-capture-title"
+          placeholder="Issue title"
           value={title}
           autoComplete="off"
-          autoCorrect="off"
-          autoCapitalize="off"
           spellCheck
-          autoFocus
           onChange={(e) => setTitle(e.target.value)}
-        />
-        <textarea
-          className="composer-body"
-          placeholder="Add description…"
-          value={description}
-          rows={3}
-          onChange={(e) => {
-            setDescription(e.target.value);
-            growBody(e.target);
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.metaKey && !e.ctrlKey && !e.nativeEvent.isComposing) {
+              e.preventDefault();
+              if (title.trim()) submit();
+              else setOpenBody(true);
+            }
+            if (e.key === "Tab" && !e.shiftKey) {
+              e.preventDefault();
+              setOpenBody(true);
+            }
           }}
         />
-        <div className="composer-bar">
-          <button className="chip" type="button" aria-label={`Status ${statusLabel(status)}`} onClick={cycleStatus}>
-            <StatusIcon status={status} />
-            {statusLabel(status)}
-          </button>
-          <button className="chip" type="button" aria-label={`Priority ${priorityName}`} onClick={cyclePriority}>
-            <PriorityIcon priority={priority} />
-            {priorityName}
-          </button>
-          <span className="spacer" />
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "#62666d", fontSize: 12 }}>
-            <Kbd>⌘</Kbd>
-            <Kbd>↵</Kbd>
-          </span>
-          <button className="primary" type="submit" disabled={!canCreate}>
-            Create idea
-          </button>
-        </div>
-      </form>
-    </div>
+        <span className="inline-capture-hint">
+          <Kbd>↵</Kbd>
+        </span>
+      </div>
+      {openBody ? (
+        <textarea
+          className="inline-capture-body"
+          placeholder="Add description…"
+          value={description}
+          autoFocus
+          onChange={(e) => setDescription(e.target.value)}
+        />
+      ) : null}
+    </form>
   );
 }
 

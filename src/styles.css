@@ -540,6 +540,131 @@ button {
   }
 }
 
+.inline-capture {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.inline-capture-row {
+  cursor: text;
+}
+
+.inline-capture-title {
+  width: 100%;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: #f7f8f8;
+  font-size: 13px;
+  line-height: 20px;
+  font-variation-settings: "wght" 470;
+  letter-spacing: -0.006em;
+  font-feature-settings: "cv01", "ss03";
+}
+
+.inline-capture-title::placeholder {
+  color: #62666d;
+}
+
+.inline-capture-hint {
+  color: #62666d;
+  display: inline-flex;
+}
+
+.inline-capture-body {
+  display: block;
+  width: 100%;
+  min-height: 72px;
+  margin: 0;
+  padding: 8px 16px 14px 112px;
+  background: transparent;
+  border: 0;
+  outline: none;
+  resize: none;
+  color: #d0d6e0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.activity {
+  padding: 8px 28px 32px;
+  margin-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.activity-label {
+  margin: 12px 0 8px;
+  font-size: 12px;
+  font-variation-settings: "wght" 510;
+  color: var(--text-4);
+  letter-spacing: 0.02em;
+}
+
+.activity-item {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 10px;
+  padding: 10px 0;
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.45;
+}
+
+.activity-item p {
+  margin: 0;
+}
+
+.activity-item strong {
+  color: var(--text);
+  font-variation-settings: "wght" 510;
+}
+
+.activity-item time {
+  display: block;
+  color: var(--text-4);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.activity-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.activity-avatar.you {
+  background: #3a3f4b;
+  color: #d0d6e0;
+  font-size: 10px;
+  font-variation-settings: "wght" 510;
+}
+
+.comment-body {
+  margin-top: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-2);
+}
+
+.activity-item.compose {
+  align-items: center;
+}
+
+.labels-v {
+  height: auto;
+  padding: 6px 0;
+  flex-wrap: wrap;
+}
+
+.muted {
+  color: var(--text-4);
+}
+
 .overlay {
   position: fixed;
   inset: 0;

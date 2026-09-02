@@ -23,10 +23,10 @@ async function desktop() {
   await shot(page, "lista-desktop");
 
   await page.keyboard.press("c");
-  await page.waitForSelector(".composer", { timeout: 5000 });
+  await page.waitForSelector(".inline-capture, .composer", { timeout: 5000 });
   await shot(page, "captura-desktop");
   await page.keyboard.press("Escape");
-  await page.waitForSelector(".composer", { hidden: true, timeout: 5000 }).catch(() => undefined);
+  await page.waitForSelector(".inline-capture, .composer", { hidden: true, timeout: 5000 }).catch(() => undefined);
 
   await page.keyboard.down("Control");
   await page.keyboard.press("k");
