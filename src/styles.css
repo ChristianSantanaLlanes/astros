@@ -634,6 +634,8 @@ button {
   min-width: 16px;
   height: 16px;
   z-index: 2;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 50%;
 }
 .inline-capture-row > .title,
 .inline-capture-row > .inline-capture-title { grid-area: title; }
