@@ -6,7 +6,8 @@ export type PieceId =
   | "detalle"
   | "busqueda"
   | "vacio"
-  | "movimiento";
+  | "movimiento"
+  | "movil";
 
 export type PieceStatus = "queued" | "building" | "review" | "won" | "lost";
 
@@ -92,5 +93,14 @@ export const PIECES: Piece[] = [
     winner: "ours",
     gap: "Drop persiste status/order; línea índigo inset. Linear embed es read-only.",
     round: 1,
+  },
+  {
+    id: "movil",
+    title: "Móvil",
+    brief: "390px: CTA icono, sin fechas tapando el título, avatares.",
+    status: "review",
+    winner: null,
+    gap: "Ronda 1 Linear: CTA recortado y fechas comiendo el título. Ronda 2: + icono, fechas ocultas, cabecera nowrap.",
+    round: 2,
   },
 ];

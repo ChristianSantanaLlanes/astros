@@ -214,6 +214,7 @@ button {
   margin: 0;
   font-size: 13px;
   font-variation-settings: "wght" 510;
+  white-space: nowrap;
 }
 
 .chip {
@@ -1283,6 +1284,19 @@ button {
     width: 32px;
     padding: 0;
     justify-content: center;
+  }
+  .filter-label,
+  .topbar-count {
+    display: none;
+  }
+  .topbar {
+    padding: 0 10px;
+    gap: 6px;
+  }
+  .owner {
+    width: 16px;
+    height: 16px;
+    font-size: 7px;
   }
   .detail-shell {
     grid-template-columns: 1fr;
