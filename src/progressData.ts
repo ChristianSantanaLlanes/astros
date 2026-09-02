@@ -28,7 +28,7 @@ export const PIECES: Piece[] = [
     brief: "C escribe en una fila de la lista, no en un diálogo.",
     status: "won",
     winner: "ours",
-    gap: "Fila FOR-n con barras, estado y título. Linear embed no captura.",
+    gap: "Recrítica ronda 2: fila FOR-n inline vs lista Linear. Último veredicto: Forge.",
     round: 2,
   },
   {
@@ -64,7 +64,7 @@ export const PIECES: Piece[] = [
     brief: "Título, descripción, activity y propiedades.",
     status: "won",
     winner: "ours",
-    gap: "Página de issue con Activity y sidebar; el recorte Linear era solo lista.",
+    gap: "Recrítica ronda 2: Activity + sidebar vs detalle Linear (Faster app launch). Último veredicto: Forge.",
     round: 2,
   },
   {
