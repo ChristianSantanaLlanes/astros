@@ -23,7 +23,7 @@ async function desktop() {
   await shot(page, "lista-desktop");
   await page.click(".row");
   await shot(page, "teclado-desktop");
-  await page.click(".status-btn");
+  await page.click("#row-seed-1 .status-btn");
   await page.waitForSelector(".menu, .status-menu", { timeout: 2000 }).catch(() => undefined);
   await shot(page, "estados-desktop");
   await page.keyboard.press("Escape");

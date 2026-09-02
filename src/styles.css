@@ -1125,7 +1125,7 @@ button {
   align-items: center;
   gap: 8px;
   height: 32px;
-  padding: 0 8px;
+  padding: 0 8px 0 4px;
   border-radius: 6px;
   width: 100%;
   text-align: left;
@@ -1133,6 +1133,13 @@ button {
   font-size: 13px;
   font-variation-settings: "wght" 450;
   outline: none;
+}
+
+.menu-tick {
+  width: 14px;
+  height: 14px;
+  color: var(--text);
+  flex-shrink: 0;
 }
 
 .menu-item:hover,
