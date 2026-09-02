@@ -779,7 +779,8 @@ button {
 
 .work-panel {
   margin: 12px 16px 24px 0;
-  padding: 12px 14px 14px;
+  padding: 12px 14px 16px;
+  min-height: 320px;
   background: #141516;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
@@ -817,8 +818,12 @@ button {
   place-items: center;
 }
 
-.work-task {
-  margin: 0 0 10px;
+.work-task,
+.work-bubble {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
   font-size: 13px;
   line-height: 1.45;
   color: var(--text);
@@ -826,9 +831,16 @@ button {
 }
 
 .work-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
   color: var(--text-3);
-  margin: 4px 0;
+  margin: 6px 0;
+}
+
+.work-timer {
+  color: var(--text-4);
 }
 
 .work-log {

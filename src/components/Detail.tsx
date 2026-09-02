@@ -255,15 +255,17 @@ export function Detail({
                 <span>Composer</span>
               </div>
             </header>
-            <p className="work-task">{brief}</p>
+            <p className="work-bubble">{brief}</p>
             <div className="work-meta">
+              <StatusIcon status={idea.status} size={12} />
               <span className="ident">{idea.identifier}</span> added to context
             </div>
             {pr ? (
               <>
-                <div className="work-meta">Worked for {workSeconds} sec</div>
+                <div className="work-meta work-timer">Worked for {workSeconds} sec</div>
                 <p className="work-log">
-                  Pushed and opened a draft PR. {idea.status === "in_progress" ? "Checks running." : "Merged."}
+                  Pushed and opened a draft PR. Capture is a list row with the same cells as every issue.
+                  {idea.status === "in_progress" ? " Checks running." : " Merged."}
                 </p>
                 <div className="work-pr">
                   <GitPullIcon size={13} />

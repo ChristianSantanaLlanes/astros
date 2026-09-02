@@ -79,7 +79,7 @@ export async function ensureSeed(): Promise<void> {
   await tx.objectStore("comments").put({
     id: "seed-comment-3",
     ideaId: "seed-1",
-    body: "Pushed a draft PR so Activity isn’t a hollow well — thread and #54017 sit next to the comments.",
+    body: "Pushed a draft PR so the thread and #54017 sit next to the comments.",
     createdAt: now - 70_000,
     authorName: "Andreas",
     authorInitials: "AN",
