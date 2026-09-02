@@ -37,7 +37,7 @@ export function Composer({
 
   const growBody = (el: HTMLTextAreaElement) => {
     el.style.height = "auto";
-    el.style.height = `${Math.max(88, Math.min(el.scrollHeight, 280))}px`;
+    el.style.height = `${Math.max(128, Math.min(el.scrollHeight, 280))}px`;
   };
 
   const canCreate = Boolean(title.trim()) && !busy;
