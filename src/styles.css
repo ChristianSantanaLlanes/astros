@@ -605,8 +605,35 @@ button {
   }
 }
 
+.prio-btn {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  background: transparent;
+}
+
+.inline-capture-row .labels {
+  min-width: 148px;
+  justify-content: flex-end;
+}
+
+.capture-slot {
+  width: 52px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.capture-date {
+  color: #62666d;
+}
+
 .inline-capture {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
 }
 
 .inline-capture-row,
@@ -614,7 +641,7 @@ button {
 .inline-capture-row.focused:hover {
   outline: none;
   box-shadow: none;
-  background: transparent;
+  background: rgba(94, 106, 210, 0.08);
   cursor: text;
 }
 

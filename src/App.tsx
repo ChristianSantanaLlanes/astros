@@ -50,6 +50,11 @@ function statusFromKeyboard(e: KeyboardEvent): Status | undefined {
   return STATUS_BY_CODE[e.code] ?? STATUS_BY_KEY[e.key];
 }
 
+function captureHost(view: View): Status {
+  if (view === "inbox" || view === "active" || view === "all") return "todo";
+  return view;
+}
+
 export function App() {
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [ready, setReady] = useState(false);
@@ -109,6 +114,13 @@ export function App() {
   const openCreate = () => {
     setFocusId(null);
     setStatusMenu(null);
+    const host = captureHost(view);
+    setCollapsed((c) => {
+      if (!c.has(host)) return c;
+      const next = new Set(c);
+      next.delete(host);
+      return next;
+    });
     setOverlay("create");
   };
 
@@ -407,16 +419,17 @@ export function App() {
               </button>
             </header>
             <div className="list">
-              {overlay === "create" && (
+              {overlay === "create" && !grouped.some((g) => g.status === captureHost(view)) ? (
                 <Composer
                   nextIdentifier={`FOR-${ideas.reduce((n, idea) => Math.max(n, idea.number), 0) + 1}`}
+                  initialStatus={captureHost(view)}
                   onClose={() => setOverlay("none")}
                   onCreate={async (title, description, status, priority) => {
                     await create(title, description, status, priority);
                     setOverlay("none");
                   }}
                 />
-              )}
+              ) : null}
               {visible.length === 0 && overlay !== "create" ? (
                 <Empty query={query} onCreate={openCreate} onClear={() => setQuery("")} />
               ) : (
@@ -453,6 +466,17 @@ export function App() {
                       {statusLabel(group.status)}
                       <span className="n">{group.items.length}</span>
                     </button>
+                    {!collapsed.has(group.status) && overlay === "create" && group.status === captureHost(view) ? (
+                      <Composer
+                        nextIdentifier={`FOR-${ideas.reduce((n, idea) => Math.max(n, idea.number), 0) + 1}`}
+                        initialStatus={group.status}
+                        onClose={() => setOverlay("none")}
+                        onCreate={async (title, description, status, priority) => {
+                          await create(title, description, status, priority);
+                          setOverlay("none");
+                        }}
+                      />
+                    ) : null}
                     {!collapsed.has(group.status) &&
                       group.items.map((idea) => (
                         <IdeaRow

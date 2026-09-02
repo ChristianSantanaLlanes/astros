@@ -4,16 +4,18 @@ import { PRIORITIES, STATUSES, statusLabel, type Priority, type Status } from ".
 
 export function Composer({
   nextIdentifier,
+  initialStatus = "todo",
   onClose,
   onCreate,
 }: {
   nextIdentifier: string;
+  initialStatus?: Status;
   onClose: () => void;
   onCreate: (title: string, description: string, status: Status, priority: Priority) => Promise<void>;
 }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [status, setStatus] = useState<Status>("todo");
+  const [status, setStatus] = useState<Status>(initialStatus);
   const [priority, setPriority] = useState<Priority>(3);
   const [busy, setBusy] = useState(false);
   const [openBody, setOpenBody] = useState(false);
@@ -59,7 +61,7 @@ export function Composer({
     >
       <div className="row inline-capture-row">
         <span className="prio-slot">
-          <button type="button" className="icon-btn" aria-label={`Priority ${priorityName}`} onClick={cyclePriority}>
+          <button type="button" className="prio-btn" aria-label={`Priority ${priorityName}`} onClick={cyclePriority}>
             <PriorityIcon priority={priority} size={14} />
           </button>
         </span>
@@ -87,9 +89,14 @@ export function Composer({
             }
           }}
         />
-        <span className="labels" aria-hidden />
+        <span className="labels" aria-hidden>
+          <span className="capture-slot" />
+          <span className="capture-slot" />
+        </span>
         <span className="owner capture-owner" aria-hidden />
-        <span className="ident date" aria-hidden />
+        <span className="ident date capture-date" aria-hidden>
+          Today
+        </span>
       </div>
       {openBody ? (
         <textarea
