@@ -345,7 +345,7 @@ button {
 
 .row {
   display: grid;
-  grid-template-columns: 16px 58px 16px minmax(0, 1fr) auto 22px 44px;
+  grid-template-columns: 16px 58px 16px minmax(0, 1fr) minmax(140px, auto) 22px 48px;
   grid-template-areas: "prio ident status title labels owner time";
   align-items: center;
   height: 36px;
@@ -456,8 +456,9 @@ button {
 .labels {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 6px;
-  min-width: 0;
+  min-width: 140px;
   overflow: hidden;
 }
 
@@ -608,6 +609,7 @@ button {
 .prio-btn {
   width: 16px;
   height: 16px;
+  min-width: 16px;
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -616,53 +618,38 @@ button {
   background: transparent;
 }
 
-.inline-capture-row .labels {
-  min-width: 148px;
-  justify-content: flex-end;
-}
-
-.capture-slot {
-  width: 52px;
-  height: 20px;
-  border-radius: 999px;
-  border: 1px dashed rgba(255, 255, 255, 0.12);
-}
-
-.capture-date {
-  color: #62666d;
-}
-
 .inline-capture {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  display: contents;
 }
 
-.inline-capture-row,
-.inline-capture-row.focused,
-.inline-capture-row.focused:hover {
-  outline: none;
-  box-shadow: none;
-  background: rgba(94, 106, 210, 0.08);
+.inline-capture-row {
   cursor: text;
 }
 
-.inline-capture-row:focus-within {
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.inline-capture-row .status-btn {
+.inline-capture-row > .prio-slot { grid-area: prio; }
+.inline-capture-row > .ident:not(.date) { grid-area: ident; }
+.inline-capture-row > .status-btn {
   grid-area: status;
+  width: 16px;
   min-width: 16px;
-  z-index: 1;
+  height: 16px;
+  z-index: 2;
 }
+.inline-capture-row > .title,
+.inline-capture-row > .inline-capture-title { grid-area: title; }
+.inline-capture-row > .labels { grid-area: labels; }
+.inline-capture-row > .owner { grid-area: owner; }
+.inline-capture-row > .date { grid-area: time; }
 
 .inline-capture-title {
-  grid-area: title;
   width: 100%;
   min-width: 0;
+  max-width: 100%;
   background: transparent;
   border: 0;
   outline: none;
   color: #f7f8f8;
+  font: inherit;
   font-size: 13px;
   line-height: 20px;
   font-variation-settings: "wght" 470;
@@ -672,17 +659,6 @@ button {
 
 .inline-capture-title::placeholder {
   color: #62666d;
-}
-
-.capture-owner {
-  background: transparent;
-  border: 1px dashed rgba(255, 255, 255, 0.12);
-}
-
-.inline-capture-hint {
-  grid-area: labels;
-  color: #62666d;
-  display: inline-flex;
 }
 
 .inline-capture-body {
@@ -698,6 +674,7 @@ button {
   color: #d0d6e0;
   font-size: 13px;
   line-height: 1.5;
+  grid-column: 1 / -1;
 }
 
 .detail-split {

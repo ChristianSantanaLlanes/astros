@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { formatTime } from "../format";
 import { PriorityIcon, StatusIcon } from "../icons";
 import { PRIORITIES, STATUSES, statusLabel, type Priority, type Status } from "../types";
 
@@ -19,6 +20,7 @@ export function Composer({
   const [priority, setPriority] = useState<Priority>(3);
   const [busy, setBusy] = useState(false);
   const [openBody, setOpenBody] = useState(false);
+  const [now] = useState(() => Date.now());
   const titleRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -59,7 +61,7 @@ export function Composer({
         }
       }}
     >
-      <div className="row inline-capture-row">
+      <div className="row focused inline-capture-row">
         <span className="prio-slot">
           <button type="button" className="prio-btn" aria-label={`Priority ${priorityName}`} onClick={cyclePriority}>
             <PriorityIcon priority={priority} size={14} />
@@ -71,9 +73,10 @@ export function Composer({
         </button>
         <input
           ref={titleRef}
-          className="inline-capture-title"
+          className="title inline-capture-title"
           placeholder="Issue title"
           value={title}
+          size={1}
           autoComplete="off"
           spellCheck
           onChange={(e) => setTitle(e.target.value)}
@@ -89,14 +92,11 @@ export function Composer({
             }
           }}
         />
-        <span className="labels" aria-hidden>
-          <span className="capture-slot" />
-          <span className="capture-slot" />
+        <span className="labels" />
+        <span className="owner" title="You" style={{ background: "#3a3f4b" }}>
+          Y
         </span>
-        <span className="owner capture-owner" aria-hidden />
-        <span className="ident date capture-date" aria-hidden>
-          Today
-        </span>
+        <span className="ident date">{formatTime(now)}</span>
       </div>
       {openBody ? (
         <textarea
