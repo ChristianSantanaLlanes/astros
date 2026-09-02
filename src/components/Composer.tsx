@@ -15,7 +15,6 @@ export function Composer({
   const [priority, setPriority] = useState<Priority>(0);
   const [busy, setBusy] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
-  const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     const node = titleRef.current ?? document.getElementById("forge-composer-title");
@@ -77,7 +76,6 @@ export function Composer({
           onChange={(e) => setTitle(e.target.value)}
         />
         <textarea
-          ref={bodyRef}
           className="composer-body"
           placeholder="Add description…"
           value={description}
