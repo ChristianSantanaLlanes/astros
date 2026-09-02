@@ -55,10 +55,6 @@ export function IdeaRow({
       }}
       onDragEnd={onDragEnd}
     >
-      <span className="prio-slot" title={priority?.label}>
-        <PriorityIcon priority={idea.priority} size={14} />
-      </span>
-      <span className="ident">{idea.identifier}</span>
       <button
         type="button"
         className="status-btn"
@@ -71,6 +67,7 @@ export function IdeaRow({
       >
         <StatusIcon status={idea.status} size={14} />
       </button>
+      <span className="ident">{idea.identifier}</span>
       <span className="title" title={idea.title}>
         {idea.title}
       </span>
@@ -82,7 +79,10 @@ export function IdeaRow({
           </span>
         ))}
       </span>
-      <span className="ident date">{formatTime(idea.updatedAt)}</span>
+      <span className="prio-slot" title={priority?.label}>
+        <PriorityIcon priority={idea.priority} size={14} />
+      </span>
+      <span className="ident">{formatTime(idea.updatedAt)}</span>
     </div>
   );
 }

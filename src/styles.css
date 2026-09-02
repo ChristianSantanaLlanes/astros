@@ -199,6 +199,17 @@ button {
   border-bottom: 1px solid var(--border-subtle);
 }
 
+.topbar .primary {
+  background: transparent;
+  color: var(--text-2);
+  border: 1px solid var(--border);
+}
+
+.topbar .primary:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
 .topbar h1 {
   margin: 0;
   font-size: 13px;
@@ -316,6 +327,10 @@ button {
   background: rgba(8, 9, 10, 0.96);
 }
 
+.group-head.drop-target {
+  box-shadow: inset 0 -2px 0 0 var(--accent);
+}
+
 .group-head > svg:first-child {
   color: #62666d;
   flex-shrink: 0;
@@ -329,8 +344,8 @@ button {
 
 .row {
   display: grid;
-  grid-template-columns: 16px 58px 16px minmax(0, 1fr) auto 44px;
-  grid-template-areas: "prio ident status title labels time";
+  grid-template-columns: 16px 64px minmax(0, 1fr) auto 16px 44px;
+  grid-template-areas: "status ident title labels prio time";
   align-items: center;
   height: 36px;
   min-height: 36px;
@@ -374,6 +389,11 @@ button {
 
 .row > .prio-slot {
   grid-area: prio;
+}
+
+.row > .owner,
+.row .cycle {
+  display: none;
 }
 
 .row:hover {
@@ -542,6 +562,18 @@ button {
 
 .inline-capture {
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.inline-capture-row,
+.inline-capture-row.focused,
+.inline-capture-row.focused:hover {
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.inline-capture-row:focus-within {
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .inline-capture-row {
@@ -859,7 +891,7 @@ button {
 }
 
 .palette-item.active {
-  background: rgba(94, 106, 210, 0.16);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--text);
 }
 
@@ -1165,8 +1197,8 @@ button {
     box-shadow: var(--shadow-float);
   }
   .row {
-    grid-template-columns: 16px 52px 16px minmax(0, 1fr) 40px;
-    grid-template-areas: "prio ident status title time";
+    grid-template-columns: 16px 56px minmax(0, 1fr) 16px 40px;
+    grid-template-areas: "status ident title prio time";
   }
   .labels {
     display: none;
