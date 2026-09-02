@@ -29,7 +29,7 @@ let dbPromise: Promise<IDBPDatabase<ForgeDB>> | null = null;
 
 function db(): Promise<IDBPDatabase<ForgeDB>> {
   if (!dbPromise) {
-    dbPromise = openDB<ForgeDB>("forge-ideas", 1, {
+    dbPromise = openDB<ForgeDB>("forge-ideas-3", 1, {
       upgrade(database) {
         const ideas = database.createObjectStore("ideas", { keyPath: "id" });
         ideas.createIndex("by_status_order", ["status", "order"]);
@@ -54,11 +54,20 @@ export async function ensureSeed(): Promise<void> {
   if (count > 0) return;
   const now = Date.now();
   const seeded = seedIdeas(now);
-  const tx = database.transaction(["ideas", "meta"], "readwrite");
+  const tx = database.transaction(["ideas", "comments", "meta"], "readwrite");
   for (const idea of seeded) {
     await tx.objectStore("ideas").put(idea);
   }
-  await tx.objectStore("meta").put({ key: "counters", nextNumber: seeded.length + 1 });
+  await tx.objectStore("comments").put({
+    id: "seed-comment-1",
+    ideaId: "seed-1",
+    body: "Ship capture as a list row. A floating dialog already lost against Linear.",
+    createdAt: now - 86_400_000,
+  });
+  await tx.objectStore("meta").put({
+    key: "counters",
+    nextNumber: Math.max(...seeded.map((idea) => idea.number)) + 1,
+  });
   await tx.done;
 }
 

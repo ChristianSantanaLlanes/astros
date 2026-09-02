@@ -55,7 +55,7 @@ export function Composer({
         }
       }}
     >
-      <div className="row inline-capture-row focused">
+      <div className="row inline-capture-row">
         <span className="prio-slot">
           <button type="button" className="icon-btn" aria-label={`Priority ${priorityName}`} onClick={cyclePriority}>
             <PriorityIcon priority={priority} size={14} />

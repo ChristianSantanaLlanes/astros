@@ -59,7 +59,7 @@ export function App() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [overlay, setOverlay] = useState<Overlay>("none");
-  const [collapsed, setCollapsed] = useState<Set<Status>>(new Set(["canceled"]));
+  const [collapsed, setCollapsed] = useState<Set<Status>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dragId, setDragId] = useState<string | null>(null);
@@ -394,9 +394,9 @@ export function App() {
               </button>
               <span className="spacer" />
               <span style={{ color: "var(--text-4)", fontSize: 12 }}>{visible.length}</span>
-              <button className="primary" type="button" onClick={() => setOverlay("create")}>
+              <button className="primary" type="button" onClick={() => setOverlay("create")} aria-label="New idea">
                 <PlusIcon size={14} />
-                New idea
+                <span className="primary-label">New idea</span>
                 <Kbd>C</Kbd>
               </button>
             </header>
@@ -416,7 +416,7 @@ export function App() {
                 grouped.map((group) => (
                   <section key={group.status} className="group">
                     <button
-                      className="group-head"
+                      className={`group-head${drop?.status === group.status && drop.beforeId === null ? " drop-target" : ""}`}
                       type="button"
                       onClick={() =>
                         setCollapsed((c) => {

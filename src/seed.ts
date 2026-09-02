@@ -20,7 +20,7 @@ export function seedIdeas(now: number): Idea[] {
         "Filas de 36px, identificador monoespaciado, título truncado, labels a la derecha. Hover sutil. Selección por teclado visible.",
       status: "in_progress",
       priority: 2,
-      labels: ["Design"],
+      labels: ["Design", "iOS"],
     },
     {
       number: 3,
@@ -38,7 +38,7 @@ export function seedIdeas(now: number): Idea[] {
         "Backlog → Todo → In Progress → Done / Canceled. Cambiar con teclado, menú y drag. El estado se refleja en icono, grupo y detalle.",
       status: "todo",
       priority: 2,
-      labels: ["API"],
+      labels: ["API", "Infra"],
     },
     {
       number: 5,
@@ -136,12 +136,16 @@ export function seedIdeas(now: number): Idea[] {
     },
   ];
 
-  return rows.map((row, index) => ({
-    ...row,
-    id: `seed-${row.number}`,
-    identifier: `${TEAM}-${row.number}`,
-    order: index,
-    createdAt: now - (rows.length - index) * 36e5,
-    updatedAt: now - (rows.length - index) * 18e5,
-  }));
+  return rows.map((row, index) => {
+    const daysAgo = [1, 2, 4, 5, 6, 7, 8, 9, 10, 12, 14, 18, 21, 24, 28][index] ?? index + 1;
+    const updatedAt = now - daysAgo * 86400000;
+    return {
+      ...row,
+      id: `seed-${row.number}`,
+      identifier: `${TEAM}-${row.number}`,
+      order: index,
+      createdAt: updatedAt - 86400000 * 2,
+      updatedAt,
+    };
+  });
 }

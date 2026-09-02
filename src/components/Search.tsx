@@ -187,34 +187,44 @@ export function CommandPalette({
         }
       }}
     >
-      {items.map((item, i) =>
-        item.kind === "action" ? (
-          <button
-            key={item.id}
-            type="button"
-            role="option"
-            aria-selected={i === active}
-            className={`palette-item${i === active ? " active" : ""}`}
-            ref={i === active ? (node) => node?.scrollIntoView({ block: "nearest" }) : undefined}
-            onMouseEnter={() => setActive(i)}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => run(item)}
-          >
-            {item.id === "new" ? <PlusIcon size={14} /> : <SearchIcon size={14} />}
-            <span className="title">{item.title}</span>
-            <span className="meta">{item.meta}</span>
-          </button>
-        ) : (
-          <IdeaHit
-            key={item.id}
-            idea={item.idea}
-            active={i === active}
-            onHover={() => setActive(i)}
-            onOpen={() => onOpen(item.idea.id)}
-          />
-        ),
+      {items.length === 0 ? (
+        <EmptyHits />
+      ) : (
+        <>
+          {actions.length > 0 ? <div className="palette-section">Commands</div> : null}
+          {items.map((item, i) =>
+            item.kind === "action" ? (
+              <button
+                key={item.id}
+                type="button"
+                role="option"
+                aria-selected={i === active}
+                className={`palette-item${i === active ? " active" : ""}`}
+                ref={i === active ? (node) => node?.scrollIntoView({ block: "nearest" }) : undefined}
+                onMouseEnter={() => setActive(i)}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => run(item)}
+              >
+                {item.id === "new" ? <PlusIcon size={14} /> : <SearchIcon size={14} />}
+                <span className="title">{item.title}</span>
+                <span className="meta">{item.meta}</span>
+              </button>
+            ) : null,
+          )}
+          {hits.length > 0 ? <div className="palette-section">Issues</div> : null}
+          {items.map((item, i) =>
+            item.kind === "idea" ? (
+              <IdeaHit
+                key={item.id}
+                idea={item.idea}
+                active={i === active}
+                onHover={() => setActive(i)}
+                onOpen={() => onOpen(item.idea.id)}
+              />
+            ) : null,
+          )}
+        </>
       )}
-      {hits.length === 0 && needle ? <EmptyHits /> : null}
     </Palette>
   );
 }

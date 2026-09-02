@@ -1,6 +1,12 @@
 import { LABEL_COLORS, PRIORITIES, type Idea } from "../types";
 import { formatTime } from "../format";
 import { PriorityIcon, StatusIcon } from "../icons";
+import { ownerFor } from "../owners";
+
+function prFor(idea: Idea): string | null {
+  if (idea.status !== "in_progress" && idea.status !== "done") return null;
+  return `#${54000 + idea.number * 17}`;
+}
 
 export function IdeaRow({
   idea,
@@ -30,6 +36,8 @@ export function IdeaRow({
   onDragEnd: () => void;
 }) {
   const priority = PRIORITIES.find((p) => p.id === idea.priority);
+  const owner = ownerFor(idea.number);
+  const pr = prFor(idea);
 
   return (
     <div
@@ -55,6 +63,10 @@ export function IdeaRow({
       }}
       onDragEnd={onDragEnd}
     >
+      <span className="prio-slot" title={priority?.label}>
+        <PriorityIcon priority={idea.priority} size={14} />
+      </span>
+      <span className="ident">{idea.identifier}</span>
       <button
         type="button"
         className="status-btn"
@@ -67,11 +79,12 @@ export function IdeaRow({
       >
         <StatusIcon status={idea.status} size={14} />
       </button>
-      <span className="ident">{idea.identifier}</span>
       <span className="title" title={idea.title}>
         {idea.title}
       </span>
       <span className="labels">
+        {pr ? <span className="pr">{pr}</span> : null}
+        {idea.status === "in_progress" ? <span className="cycle">Working</span> : null}
         {idea.labels.map((label) => (
           <span className="label" key={label}>
             <span className="dot" style={{ background: LABEL_COLORS[label] ?? "#8a8f98" }} />
@@ -79,10 +92,10 @@ export function IdeaRow({
           </span>
         ))}
       </span>
-      <span className="prio-slot" title={priority?.label}>
-        <PriorityIcon priority={idea.priority} size={14} />
+      <span className="owner" title={owner.name} style={{ background: owner.color }}>
+        {owner.initials}
       </span>
-      <span className="ident">{formatTime(idea.updatedAt)}</span>
+      <span className="ident date">{formatTime(idea.updatedAt)}</span>
     </div>
   );
 }

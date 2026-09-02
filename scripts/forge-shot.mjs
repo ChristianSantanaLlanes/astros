@@ -21,6 +21,12 @@ async function desktop() {
   await page.goto("http://127.0.0.1:5173/", { waitUntil: "networkidle0", timeout: 20000 });
   await page.waitForSelector(".row, .empty", { timeout: 10000 });
   await shot(page, "lista-desktop");
+  await page.click(".row");
+  await shot(page, "teclado-desktop");
+  await page.click(".status-btn");
+  await page.waitForSelector(".menu, .status-menu", { timeout: 2000 }).catch(() => undefined);
+  await shot(page, "estados-desktop");
+  await page.keyboard.press("Escape");
 
   await page.keyboard.press("c");
   await page.waitForSelector(".inline-capture, .composer", { timeout: 5000 });
@@ -68,7 +74,7 @@ async function mobile() {
   await page.waitForSelector(".row, .empty", { timeout: 10000 });
   await shot(page, "lista-mobile");
   await page.keyboard.press("c");
-  await page.waitForSelector(".composer", { timeout: 5000 }).catch(() => undefined);
+  await page.waitForSelector(".inline-capture, .composer", { timeout: 5000 }).catch(() => undefined);
   await shot(page, "captura-mobile");
   await page.close();
 }
