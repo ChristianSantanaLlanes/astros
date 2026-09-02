@@ -614,14 +614,17 @@ button {
   outline: none;
   box-shadow: none;
   background: transparent;
+  cursor: text;
 }
 
 .inline-capture-row:focus-within {
   background: rgba(255, 255, 255, 0.03);
 }
 
-.inline-capture-row {
-  cursor: text;
+.inline-capture-row .status-btn {
+  grid-area: status;
+  min-width: 16px;
+  z-index: 1;
 }
 
 .inline-capture-title {

@@ -52,9 +52,9 @@ export const PIECES: Piece[] = [
     id: "estados",
     title: "Estados",
     brief: "Grupos In Progress / Todo / Backlog con conteo e icono.",
-    status: "lost",
-    winner: "linear",
-    gap: "Ronda 2: el check de Done se leía como selección. Ronda 3: tick explícito en el estado actual.",
+    status: "won",
+    winner: "ours",
+    gap: "Grupos con conteo; el menú marca el estado actual con tick, Done ya no parece seleccionado.",
     round: 3,
   },
   {

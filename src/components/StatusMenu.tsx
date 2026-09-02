@@ -98,7 +98,7 @@ export function StatusMenu({
           <span className="menu-tick" aria-hidden>
             {s.id === current ? <CheckIcon /> : null}
           </span>
-          <StatusIcon status={s.id} />
+          <StatusIcon status={s.id} outline={s.id === "done" && s.id !== current} />
           {s.label}
           <span className="spacer" />
           <Kbd>{s.shortcut}</Kbd>
