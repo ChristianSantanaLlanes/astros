@@ -1,16 +1,23 @@
 {
-	"extends": "astro/tsconfigs/base",
-	"compilerOptions": {
-		"strictNullChecks": true,
-		"baseUrl": "src",
-		"paths": {
-			"@lib/*": ["lib/*"],
-			"@utils/*": ["utils/*"],
-			"@components/*": ["components/*"],
-			"@layouts/*": ["layouts/*"],
-			"@assets/*": ["assets/*"],
-			"@pages/*": ["pages/*"]
-		},
-		"types": ["vite-plugin-pwa/info"]
-	}
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitReturns": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src"]
 }
