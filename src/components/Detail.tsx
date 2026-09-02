@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { addComment, listComments } from "../db";
-import { formatTime } from "../format";
-import { CloseIcon, ForgeMark, PriorityIcon, StatusIcon } from "../icons";
+import { formatRelative, formatTime, prFor } from "../format";
+import { CloseIcon, ForgeMark, GitPullIcon, PriorityIcon, StatusIcon } from "../icons";
 import { ownerFor } from "../owners";
 import {
   LABEL_COLORS,
@@ -28,6 +28,15 @@ function autosize(el: HTMLTextAreaElement | null) {
   el.style.height = `${el.scrollHeight}px`;
 }
 
+function commentAuthor(comment: Comment) {
+  return {
+    name: comment.authorName ?? "You",
+    initials: comment.authorInitials ?? "Y",
+    color: comment.authorColor ?? "#3a3f4b",
+    you: !comment.authorName,
+  };
+}
+
 export function Detail({
   idea,
   onBack,
@@ -43,6 +52,7 @@ export function Detail({
   const [description, setDescription] = useState(idea.description);
   const [comments, setComments] = useState<Comment[]>([]);
   const [draft, setDraft] = useState("");
+  const [now] = useState(() => Date.now());
   const titleRef = useRef<HTMLTextAreaElement>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const sending = useRef(false);
@@ -87,6 +97,10 @@ export function Detail({
 
   const owner = ownerFor(idea.number);
   const statusActor = ownerFor(idea.number + 1);
+  const labelActor = ownerFor(idea.number + 2);
+  const pr = prFor(idea);
+  const workSeconds = 8 + (idea.number % 7) * 3;
+  const brief = idea.description.split("\n")[0]?.trim() ?? idea.title;
 
   return (
     <div className="detail-shell">
@@ -127,63 +141,141 @@ export function Detail({
           onChange={(e) => setDescription(e.target.value)}
           onBlur={commitDescription}
         />
-        <section className="activity">
-          <h2 className="activity-label">Activity</h2>
-          <div className="activity-item">
-            <span className="activity-avatar" aria-hidden>
-              <ForgeMark size={18} />
-            </span>
-            <div>
-              <p>
-                <strong>Forge</strong> created the issue
-              </p>
-              <time dateTime={new Date(idea.createdAt).toISOString()}>{formatTime(idea.createdAt)}</time>
-            </div>
-          </div>
-          {idea.status !== "backlog" ? (
+        <div className="detail-split">
+          <section className="activity">
+            <h2 className="activity-label">Activity</h2>
             <div className="activity-item">
-              <span className="activity-avatar" aria-hidden style={{ background: statusActor.color }}>
-                {statusActor.initials}
+              <span className="activity-avatar" aria-hidden>
+                <ForgeMark size={18} />
               </span>
               <div>
                 <p>
-                  <strong>{statusActor.name}</strong> set status to {statusLabel(idea.status)}
+                  <strong>Forge</strong> created the issue
                 </p>
-                <time dateTime={new Date(idea.updatedAt).toISOString()}>{formatTime(idea.updatedAt)}</time>
+                <time dateTime={new Date(idea.createdAt).toISOString()}>{formatRelative(idea.createdAt, now)}</time>
               </div>
             </div>
-          ) : null}
-          {comments.map((comment) => (
-            <div className="activity-item comment" key={comment.id}>
+            {idea.labels.length > 0 ? (
+              <div className="activity-item">
+                <span className="activity-avatar" aria-hidden style={{ background: labelActor.color }}>
+                  {labelActor.initials}
+                </span>
+                <div>
+                  <p>
+                    <strong>{labelActor.name}</strong> added the labels{" "}
+                    {idea.labels.map((label, i) => (
+                      <span key={label}>
+                        {i > 0 ? " and " : null}
+                        <span className="activity-label-chip">
+                          <span className="dot" style={{ background: LABEL_COLORS[label] ?? "#8a8f98" }} />
+                          {label}
+                        </span>
+                      </span>
+                    ))}
+                  </p>
+                  <time dateTime={new Date(idea.createdAt + 120_000).toISOString()}>
+                    {formatRelative(idea.createdAt + 120_000, now)}
+                  </time>
+                </div>
+              </div>
+            ) : null}
+            {idea.status !== "backlog" ? (
+              <div className="activity-item">
+                <span className="activity-avatar" aria-hidden style={{ background: statusActor.color }}>
+                  {statusActor.initials}
+                </span>
+                <div>
+                  <p>
+                    <strong>{statusActor.name}</strong> set status to {statusLabel(idea.status)}
+                  </p>
+                  <time dateTime={new Date(idea.updatedAt).toISOString()}>{formatRelative(idea.updatedAt, now)}</time>
+                </div>
+              </div>
+            ) : null}
+            {pr ? (
+              <div className="activity-item">
+                <span className="activity-avatar pr-avatar" aria-hidden>
+                  <GitPullIcon size={12} />
+                </span>
+                <div>
+                  <p>
+                    <strong>{statusActor.name}</strong> opened pull request <span className="pr">{pr}</span>
+                  </p>
+                  <time dateTime={new Date(idea.updatedAt).toISOString()}>{formatRelative(idea.updatedAt, now)}</time>
+                </div>
+              </div>
+            ) : null}
+            {comments.map((comment) => {
+              const author = commentAuthor(comment);
+              return (
+                <div className="activity-item comment" key={comment.id}>
+                  <span
+                    className={`activity-avatar${author.you ? " you" : ""}`}
+                    aria-hidden
+                    style={author.you ? undefined : { background: author.color }}
+                  >
+                    {author.initials}
+                  </span>
+                  <div>
+                    <p>
+                      <strong>{author.name}</strong>
+                      <time dateTime={new Date(comment.createdAt).toISOString()}>
+                        {formatRelative(comment.createdAt, now)}
+                      </time>
+                    </p>
+                    <div className="comment-body">{comment.body}</div>
+                  </div>
+                </div>
+              );
+            })}
+            <div className="activity-item compose">
               <span className="activity-avatar you" aria-hidden>
                 Y
               </span>
-              <div>
-                <p>
-                  <strong>You</strong>
-                </p>
-                <time dateTime={new Date(comment.createdAt).toISOString()}>{formatTime(comment.createdAt)}</time>
-                <div className="comment-body">{comment.body}</div>
-              </div>
+              <input
+                className="comment-input"
+                placeholder="Leave a comment…"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+                  e.preventDefault();
+                  sendComment();
+                }}
+              />
             </div>
-          ))}
-          <div className="activity-item compose">
-            <span className="activity-avatar you" aria-hidden>
-              Y
-            </span>
-            <input
-              className="comment-input"
-              placeholder="Leave a comment…"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
-                e.preventDefault();
-                sendComment();
-              }}
-            />
-          </div>
-        </section>
+          </section>
+          <aside className="work-panel" aria-label="Agent work">
+            <header className="work-head">
+              <span className="work-mark">
+                <ForgeMark size={16} />
+              </span>
+              <div>
+                <strong>Forge</strong>
+                <span>Composer</span>
+              </div>
+            </header>
+            <p className="work-task">{brief}</p>
+            <div className="work-meta">
+              <span className="ident">{idea.identifier}</span> added to context
+            </div>
+            {pr ? (
+              <>
+                <div className="work-meta">Worked for {workSeconds} sec</div>
+                <p className="work-log">
+                  Pushed and opened a draft PR. {idea.status === "in_progress" ? "Checks running." : "Merged."}
+                </p>
+                <div className="work-pr">
+                  <GitPullIcon size={13} />
+                  <span className="pr">{pr}</span>
+                  {idea.status === "in_progress" ? <span className="cycle">Working</span> : <span className="cycle">Done</span>}
+                </div>
+              </>
+            ) : (
+              <p className="work-log">No pull request yet. Start work to open a draft PR from this issue.</p>
+            )}
+          </aside>
+        </div>
       </div>
       <aside className="props">
         <div className="prop">
@@ -231,6 +323,19 @@ export function Detail({
                   {label}
                 </span>
               ))
+            )}
+          </div>
+        </div>
+        <div className="prop">
+          <div className="k">Pull request</div>
+          <div className="v">
+            {pr ? (
+              <>
+                <GitPullIcon size={13} />
+                <span className="pr">{pr}</span>
+              </>
+            ) : (
+              <span className="muted">None</span>
             )}
           </div>
         </div>

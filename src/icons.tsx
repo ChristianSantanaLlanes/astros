@@ -213,6 +213,17 @@ export function CheckIcon({ size = 14, className }: IconProps) {
   );
 }
 
+export function GitPullIcon({ size = 14, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 14 14" fill="none" className={className} aria-hidden>
+      <circle cx="3.5" cy="3.2" r="1.6" stroke="currentColor" strokeWidth="1.3" />
+      <circle cx="3.5" cy="10.8" r="1.6" stroke="currentColor" strokeWidth="1.3" />
+      <circle cx="10.5" cy="10.8" r="1.6" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M3.5 4.8v4.4M10.5 9.2V6.4A2.9 2.9 0 0 0 7.6 3.5H6.2" stroke="currentColor" strokeWidth="1.3" />
+    </svg>
+  );
+}
+
 export function FilterIcon({ size = 16, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className} aria-hidden>

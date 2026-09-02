@@ -20,6 +20,9 @@ export type Comment = {
   ideaId: string;
   body: string;
   createdAt: number;
+  authorName?: string;
+  authorInitials?: string;
+  authorColor?: string;
 };
 
 export const STATUSES: { id: Status; label: string; shortcut: string }[] = [
