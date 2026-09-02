@@ -1,12 +1,7 @@
 import { LABEL_COLORS, PRIORITIES, type Idea } from "../types";
-import { formatTime } from "../format";
+import { formatTime, prFor } from "../format";
 import { PriorityIcon, StatusIcon } from "../icons";
 import { ownerFor } from "../owners";
-
-function prFor(idea: Idea): string | null {
-  if (idea.status !== "in_progress" && idea.status !== "done") return null;
-  return `#${54000 + idea.number * 17}`;
-}
 
 export function IdeaRow({
   idea,

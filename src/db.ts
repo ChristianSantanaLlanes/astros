@@ -29,7 +29,7 @@ let dbPromise: Promise<IDBPDatabase<ForgeDB>> | null = null;
 
 function db(): Promise<IDBPDatabase<ForgeDB>> {
   if (!dbPromise) {
-    dbPromise = openDB<ForgeDB>("forge-ideas-4", 1, {
+    dbPromise = openDB<ForgeDB>("forge-ideas-5", 1, {
       upgrade(database) {
         const ideas = database.createObjectStore("ideas", { keyPath: "id" });
         ideas.createIndex("by_status_order", ["status", "order"]);
@@ -61,14 +61,29 @@ export async function ensureSeed(): Promise<void> {
   await tx.objectStore("comments").put({
     id: "seed-comment-1",
     ideaId: "seed-1",
-    body: "Keep capture as a list row — same cells as every issue.",
-    createdAt: now - 86_400_000,
+    body: "Right now we show a spinner forever, which makes it look like the car disappeared…",
+    createdAt: now - 4 * 60_000,
+    authorName: "Karri",
+    authorInitials: "KA",
+    authorColor: "#5e6ad2",
   });
   await tx.objectStore("comments").put({
     id: "seed-comment-2",
     ideaId: "seed-1",
-    body: "Cmd+Enter should create and leave the composer open for the next idea.",
-    createdAt: now - 36_000_000,
+    body: "Keep capture as a list row — same cells as every issue. Cmd+Enter should create and leave the composer open.",
+    createdAt: now - 2 * 60_000,
+    authorName: "Lena",
+    authorInitials: "LE",
+    authorColor: "#eb5757",
+  });
+  await tx.objectStore("comments").put({
+    id: "seed-comment-3",
+    ideaId: "seed-1",
+    body: "Pushed a draft PR so the thread and #54017 sit next to the comments.",
+    createdAt: now - 70_000,
+    authorName: "Andreas",
+    authorInitials: "AN",
+    authorColor: "#27a644",
   });
   await tx.objectStore("meta").put({
     key: "counters",

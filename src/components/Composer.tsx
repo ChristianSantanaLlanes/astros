@@ -1,22 +1,26 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { formatTime } from "../format";
 import { PriorityIcon, StatusIcon } from "../icons";
 import { PRIORITIES, STATUSES, statusLabel, type Priority, type Status } from "../types";
 
 export function Composer({
   nextIdentifier,
+  initialStatus = "todo",
   onClose,
   onCreate,
 }: {
   nextIdentifier: string;
+  initialStatus?: Status;
   onClose: () => void;
   onCreate: (title: string, description: string, status: Status, priority: Priority) => Promise<void>;
 }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [status, setStatus] = useState<Status>("todo");
+  const [status, setStatus] = useState<Status>(initialStatus);
   const [priority, setPriority] = useState<Priority>(3);
   const [busy, setBusy] = useState(false);
   const [openBody, setOpenBody] = useState(false);
+  const [now] = useState(() => Date.now());
   const titleRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -59,7 +63,7 @@ export function Composer({
     >
       <div className="row inline-capture-row">
         <span className="prio-slot">
-          <button type="button" className="icon-btn" aria-label={`Priority ${priorityName}`} onClick={cyclePriority}>
+          <button type="button" className="prio-btn" aria-label={`Priority ${priorityName}`} onClick={cyclePriority}>
             <PriorityIcon priority={priority} size={14} />
           </button>
         </span>
@@ -69,9 +73,10 @@ export function Composer({
         </button>
         <input
           ref={titleRef}
-          className="inline-capture-title"
+          className="title inline-capture-title"
           placeholder="Issue title"
           value={title}
+          size={1}
           autoComplete="off"
           spellCheck
           onChange={(e) => setTitle(e.target.value)}
@@ -87,9 +92,11 @@ export function Composer({
             }
           }}
         />
-        <span className="labels" aria-hidden />
-        <span className="owner capture-owner" aria-hidden />
-        <span className="ident date" aria-hidden />
+        <span className="labels" />
+        <span className="owner" title="You" style={{ background: "#3a3f4b" }}>
+          Y
+        </span>
+        <span className="ident date">{formatTime(now)}</span>
       </div>
       {openBody ? (
         <textarea
