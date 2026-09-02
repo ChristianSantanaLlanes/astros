@@ -56,7 +56,8 @@ export function StatusMenu({
         e.preventDefault();
         e.stopPropagation();
         const dir = e.key === "ArrowDown" ? 1 : -1;
-        const next = buttons[(Math.max(i, 0) + dir + buttons.length) % buttons.length];
+        const start = i < 0 ? (dir === 1 ? -1 : 0) : i;
+        const next = buttons[(start + dir + buttons.length) % buttons.length];
         next?.focus();
         return;
       }

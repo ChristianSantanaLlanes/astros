@@ -2,7 +2,7 @@ import type { Priority, Status } from "./types";
 
 type IconProps = { size?: number; className?: string };
 
-const iconStyle = { display: "block", flexShrink: 0 } as const;
+const iconStyle = { display: "block", flexShrink: 0, overflow: "visible" } as const;
 
 export function StatusIcon({ status, size = 14 }: { status: Status; size?: number }) {
   const s = size;
@@ -41,11 +41,8 @@ export function StatusIcon({ status, size = 14 }: { status: Status; size?: numbe
       <svg width={s} height={s} viewBox="0 0 14 14" fill="none" aria-hidden style={iconStyle}>
         <circle cx="7" cy="7" r="7" fill="#5e6ad2" />
         <path
-          d="M4.2 7.1 6.1 9.1 9.9 4.8"
-          stroke="#fff"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+          fill="#fff"
+          d="M10.95 4.25a.75.75 0 0 1 0 1.06L6.62 9.64a.75.75 0 0 1-1.06 0L3.05 7.13a.75.75 0 1 1 1.06-1.06l2 2 3.78-3.78a.75.75 0 0 1 1.06 0Z"
         />
       </svg>
     );
@@ -53,18 +50,27 @@ export function StatusIcon({ status, size = 14 }: { status: Status; size?: numbe
   return (
     <svg width={s} height={s} viewBox="0 0 14 14" fill="none" aria-hidden style={iconStyle}>
       <circle cx="7" cy="7" r="6" stroke="#62666d" strokeWidth="1.5" />
-      <path d="M4.8 4.8 9.2 9.2M9.2 4.8 4.8 9.2" stroke="#62666d" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M5 5l4 4M9 5l-4 4" stroke="#62666d" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }
 
 export function PriorityIcon({ priority, size = 14 }: { priority: Priority; size?: number }) {
   const s = size;
+  if (priority === 0) {
+    return (
+      <svg width={s} height={s} viewBox="0 0 14 14" fill="none" aria-hidden style={iconStyle}>
+        <rect x="1.2" y="6.25" width="2.6" height="1.5" rx="0.5" fill="#3e4146" />
+        <rect x="5.7" y="6.25" width="2.6" height="1.5" rx="0.5" fill="#3e4146" />
+        <rect x="10.2" y="6.25" width="2.6" height="1.5" rx="0.5" fill="#3e4146" />
+      </svg>
+    );
+  }
   if (priority === 1) {
     return (
       <svg width={s} height={s} viewBox="0 0 14 14" fill="none" aria-hidden style={iconStyle}>
         <path
-          d="M7 1.6 13.15 12.6H.85L7 1.6Z"
+          d="M7 1.55 13.2 12.7H.8L7 1.55Z"
           fill="#eb5757"
           stroke="#eb5757"
           strokeWidth="1.4"
@@ -75,16 +81,16 @@ export function PriorityIcon({ priority, size = 14 }: { priority: Priority; size
   }
   const on = "#8a8f98";
   const off = "#2e3238";
-  const lit = priority === 0 ? 0 : priority === 4 ? 1 : priority === 3 ? 2 : 3;
-  const heights = [3.8, 6.4, 9];
+  const lit = priority === 4 ? 1 : priority === 3 ? 2 : 3;
+  const heights = [4.5, 7.5, 10.5];
   return (
     <svg width={s} height={s} viewBox="0 0 14 14" fill="none" aria-hidden style={iconStyle}>
       {heights.map((h, i) => (
         <rect
           key={h}
-          x={2.7 + i * 3.1}
-          y={11.6 - h}
-          width="1.9"
+          x={2.5 + i * 3.2}
+          y={12.2 - h}
+          width="2"
           height={h}
           rx="0.5"
           fill={i < lit ? on : off}
