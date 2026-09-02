@@ -26,9 +26,9 @@ export const PIECES: Piece[] = [
     id: "captura",
     title: "Captura rápida",
     brief: "C escribe en una fila de la lista, no en un diálogo.",
-    status: "lost",
-    winner: "linear",
-    gap: "Ronda 3 Linear: blobs punteados y sin celda de estado. Ronda 4: misma rejilla que el resto de filas.",
+    status: "won",
+    winner: "ours",
+    gap: "Ronda 4 Forge. C es una fila de issue (prioridad, id, estado, título, assignee, fecha); Linear no tiene captura inline.",
     round: 4,
   },
   {
