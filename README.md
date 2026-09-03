@@ -9,7 +9,8 @@ npm install
 npm run dev
 ```
 
-- App: http://localhost:5173
+- Landing: http://localhost:5173
+- Dashboard: http://localhost:5173/app
 - Progreso en vivo: http://localhost:5173/progress.html
 
 Persistencia local en IndexedDB (`forge-ideas`). No es un mock: crear, editar, buscar, comentar, cambiar estado y reordenar sobreviven al recargo.

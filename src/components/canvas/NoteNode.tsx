@@ -4,10 +4,10 @@ import { useCanvasRuntime } from "./canvasContext";
 import { NodeHandles } from "./NodeHandles";
 
 export function NoteNode({ id, data, selected }: NodeProps<Node<CanvasNodeData, "note">>) {
-  const { onPatchNode } = useCanvasRuntime();
+  const { onPatchNode, expandedId } = useCanvasRuntime();
   return (
-    <div className={`canvas-node canvas-note${selected ? " selected" : ""}`}>
-      <NodeHandles />
+    <div className={`canvas-node canvas-note${selected ? " selected" : ""}${id === expandedId ? " dimmed" : ""}`}>
+      <NodeHandles nodeId={id} />
       <input
         className="canvas-node-title nodrag nopan"
         placeholder="Nota"

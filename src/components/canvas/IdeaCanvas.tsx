@@ -13,23 +13,38 @@ import {
   type Connection,
   type DefaultEdgeOptions,
   type Edge,
-  type Node,
   type NodeTypes,
   type OnConnect,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { getCanvas, putCanvasAsset, replaceCanvas } from "../../db";
+import { isTypingTarget } from "../../format";
 import { CloseIcon, ImageIcon, NoteIcon, StatusIcon, VideoIcon, ViewsIcon } from "../../icons";
 import type { CanvasEdge, CanvasNode, CanvasNodeType, Idea } from "../../types";
+import {
+  clearNodeSelection,
+  cloneSelection,
+  instantiateClipboard,
+  removeNodesAndEdges,
+  selectOnly,
+  selectedNodeIds,
+  snapshotSelection,
+  type CanvasClipboard,
+  type FlowNode,
+} from "./canvasClipboard";
 import { CanvasRuntimeContext, type CanvasNodeData } from "./canvasContext";
 import { IdeaPicker } from "./IdeaPicker";
 import { IdeaRefNode } from "./IdeaRefNode";
 import { ImageNode } from "./ImageNode";
 import { NoteNode } from "./NoteNode";
+import { NodeContextMenu } from "./NodeContextMenu";
 import { VideoNode } from "./VideoNode";
+import { NodeModal, type OriginRect } from "./NodeModal";
 import { isHttpUrl } from "./parseMediaUrl";
 
-type FlowNode = Node<CanvasNodeData, CanvasNodeType>;
+type ContextMenu =
+  | { kind: "node"; x: number; y: number; ids: string[] }
+  | { kind: "pane"; x: number; y: number; flow: { x: number; y: number } };
 
 const nodeTypes = {
   note: NoteNode,
@@ -96,7 +111,7 @@ function samePorts(a: Connection | Edge, b: Connection | Edge): boolean {
   return (aFrom === bFrom && aTo === bTo) || (aFrom === bTo && aTo === bFrom);
 }
 
-function isAllowedConnection(connection: Connection, edges: Edge[]): boolean {
+function isAllowedConnection(connection: Connection | Edge, edges: Edge[]): boolean {
   if (!connection.source || !connection.target) return false;
   if (connection.source === connection.target) return false;
   return !edges.some((edge) => samePorts(edge, connection));
@@ -152,14 +167,16 @@ function CanvasBoard({
   idea,
   ideas,
   assetUrls,
-  rememberAssetUrl,
+  assetBlobs,
+  rememberAsset,
   onOpenIdea,
   onError,
 }: {
   idea: Idea;
   ideas: Idea[];
   assetUrls: Record<string, string>;
-  rememberAssetUrl: (id: string, url: string) => void;
+  assetBlobs: Record<string, Blob>;
+  rememberAsset: (id: string, blob: Blob, url: string) => void;
   onOpenIdea: (id: string) => void;
   onError: (message: string) => void;
 }) {
@@ -170,17 +187,26 @@ function CanvasBoard({
   const [picker, setPicker] = useState(false);
   const [mediaMenu, setMediaMenu] = useState<"image" | "video" | null>(null);
   const [urlKind, setUrlKind] = useState<"image" | "video" | null>(null);
+  const [expanded, setExpanded] = useState<{ id: string; origin: OriginRect } | null>(null);
+  const [clipboard, setClipboard] = useState<CanvasClipboard | null>(null);
+  const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const fileKind = useRef<"image" | "video">("image");
   const nodesRef = useRef(nodes);
   const edgesRef = useRef(edges);
   const ideaIdRef = useRef(idea.id);
+  const blobsRef = useRef(assetBlobs);
+  const clipboardRef = useRef(clipboard);
+  const lastFlowPoint = useRef({ x: 120, y: 80 });
+  const lastPaneClick = useRef({ t: 0, x: 0, y: 0 });
   const persistTimer = useRef<number | null>(null);
   const dirty = useRef(false);
 
   nodesRef.current = nodes;
   edgesRef.current = edges;
   ideaIdRef.current = idea.id;
+  blobsRef.current = assetBlobs;
+  clipboardRef.current = clipboard;
 
   const flush = useCallback(() => {
     const id = ideaIdRef.current;
@@ -229,20 +255,6 @@ function CanvasBoard({
       }
     };
   }, [fitView, idea.id, setEdges, setNodes]);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      if (!picker && !urlKind && !mediaMenu) return;
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      setPicker(false);
-      setUrlKind(null);
-      setMediaMenu(null);
-    };
-    window.addEventListener("keydown", onKey, true);
-    return () => window.removeEventListener("keydown", onKey, true);
-  }, [mediaMenu, picker, urlKind]);
 
   const center = useCallback(() => {
     const pane = document.querySelector(".canvas-board .react-flow");
@@ -298,15 +310,183 @@ function CanvasBoard({
     [schedulePersist, setEdges],
   );
 
+  const onExpandNode = useCallback((id: string) => {
+    const el = document.querySelector(`.canvas-board .react-flow__node[data-id="${CSS.escape(id)}"]`);
+    const rect = el?.getBoundingClientRect();
+    setExpanded({
+      id,
+      origin: rect
+        ? { top: rect.top, left: rect.left, width: rect.width, height: rect.height }
+        : { top: 96, left: 96, width: 240, height: 160 },
+    });
+    setMediaMenu(null);
+  }, []);
+
+  const closeOverlays = useCallback(() => {
+    setContextMenu(null);
+    setMediaMenu(null);
+  }, []);
+
+  const idsForAction = useCallback((explicit?: string[]) => {
+    if (explicit && explicit.length > 0) return explicit;
+    return selectedNodeIds(nodesRef.current);
+  }, []);
+
+  const copyIds = useCallback((ids: string[]) => {
+    const clip = snapshotSelection(nodesRef.current, edgesRef.current, ids, blobsRef.current);
+    if (!clip) return false;
+    setClipboard(clip);
+    return true;
+  }, []);
+
+  const deleteIds = useCallback(
+    (ids: string[]) => {
+      if (ids.length === 0) return;
+      if (expanded && ids.includes(expanded.id)) setExpanded(null);
+      const next = removeNodesAndEdges(nodesRef.current, edgesRef.current, ids);
+      setNodes(next.nodes);
+      setEdges(next.edges);
+      schedulePersist();
+    },
+    [expanded, schedulePersist, setEdges, setNodes],
+  );
+
+  const cloneIds = useCallback(
+    (ids: string[]) => {
+      const duplicated = cloneSelection(nodesRef.current, edgesRef.current, ids, idea.id);
+      if (!duplicated) return;
+      setNodes([...clearNodeSelection(nodesRef.current), ...duplicated.nodes]);
+      setEdges([...edgesRef.current, ...duplicated.edges]);
+      schedulePersist();
+    },
+    [idea.id, schedulePersist, setEdges, setNodes],
+  );
+
+  const pasteAt = useCallback(
+    async (origin: { x: number; y: number }) => {
+      const clip = clipboardRef.current;
+      if (!clip) return;
+      const assetIdMap: Record<string, string> = {};
+      for (const asset of clip.assets) {
+        try {
+          const stored = await putCanvasAsset(idea.id, asset.blob);
+          rememberAsset(stored.id, asset.blob, URL.createObjectURL(asset.blob));
+          assetIdMap[asset.oldId] = stored.id;
+        } catch (error) {
+          onError(error instanceof Error ? error.message : "No se pudo pegar el archivo");
+          return;
+        }
+      }
+      const next = instantiateClipboard(clip, idea.id, origin, assetIdMap);
+      setNodes([...clearNodeSelection(nodesRef.current), ...next.nodes]);
+      setEdges([...edgesRef.current, ...next.edges]);
+      schedulePersist();
+    },
+    [idea.id, onError, rememberAsset, schedulePersist, setEdges, setNodes],
+  );
+
+  const onCopy = useCallback(() => {
+    copyIds(idsForAction(contextMenu?.kind === "node" ? contextMenu.ids : undefined));
+    setContextMenu(null);
+  }, [contextMenu, copyIds, idsForAction]);
+
+  const onCut = useCallback(() => {
+    const ids = idsForAction(contextMenu?.kind === "node" ? contextMenu.ids : undefined);
+    if (!copyIds(ids)) return;
+    deleteIds(ids);
+    setContextMenu(null);
+  }, [contextMenu, copyIds, deleteIds, idsForAction]);
+
+  const onClone = useCallback(() => {
+    cloneIds(idsForAction(contextMenu?.kind === "node" ? contextMenu.ids : undefined));
+    setContextMenu(null);
+  }, [cloneIds, contextMenu, idsForAction]);
+
+  const onDelete = useCallback(() => {
+    deleteIds(idsForAction(contextMenu?.kind === "node" ? contextMenu.ids : undefined));
+    setContextMenu(null);
+  }, [contextMenu, deleteIds, idsForAction]);
+
+  const onPaste = useCallback(() => {
+    const origin = contextMenu?.kind === "pane" ? contextMenu.flow : lastFlowPoint.current;
+    void pasteAt(origin);
+    setContextMenu(null);
+  }, [contextMenu, pasteAt]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === " " || e.code === "Space") {
+        if (!e.metaKey && !e.ctrlKey && !e.altKey && !e.repeat && !picker && !urlKind && !mediaMenu && !expanded && !contextMenu && !isTypingTarget(e.target)) {
+          e.preventDefault();
+          e.stopPropagation();
+          addNode("note", {}, lastFlowPoint.current);
+          return;
+        }
+      }
+      if (e.key === "Escape") {
+        if (contextMenu) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          setContextMenu(null);
+          return;
+        }
+        if (expanded) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          setExpanded(null);
+          return;
+        }
+        if (!picker && !urlKind && !mediaMenu) return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        setPicker(false);
+        setUrlKind(null);
+        setMediaMenu(null);
+        return;
+      }
+
+      const meta = e.metaKey || e.ctrlKey;
+      if (!meta || e.repeat || e.altKey) return;
+      if (picker || urlKind || mediaMenu || expanded) return;
+      if (isTypingTarget(e.target)) return;
+      const letter = e.key.toLowerCase();
+      if (letter === "c") {
+        e.preventDefault();
+        copyIds(idsForAction());
+        return;
+      }
+      if (letter === "x") {
+        e.preventDefault();
+        const ids = idsForAction();
+        if (!copyIds(ids)) return;
+        deleteIds(ids);
+        return;
+      }
+      if (letter === "v") {
+        e.preventDefault();
+        void pasteAt(lastFlowPoint.current);
+        return;
+      }
+      if (letter === "d") {
+        e.preventDefault();
+        cloneIds(idsForAction());
+      }
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [addNode, cloneIds, contextMenu, copyIds, deleteIds, expanded, idsForAction, mediaMenu, pasteAt, picker, urlKind]);
+
   const runtime = useMemo(
     () => ({
       ideas,
       currentIdeaId: idea.id,
+      expandedId: expanded?.id ?? null,
       assetUrls,
       onOpenIdea,
       onPatchNode,
+      onExpandNode,
     }),
-    [assetUrls, idea.id, ideas, onOpenIdea, onPatchNode],
+    [assetUrls, expanded?.id, idea.id, ideas, onExpandNode, onOpenIdea, onPatchNode],
   );
 
   const pickFile = (kind: "image" | "video") => {
@@ -322,16 +502,23 @@ function CanvasBoard({
     if (!file) return;
     try {
       const asset = await putCanvasAsset(idea.id, file);
-      rememberAssetUrl(asset.id, URL.createObjectURL(file));
+      rememberAsset(asset.id, file, URL.createObjectURL(file));
       addNode(fileKind.current, { assetId: asset.id, title: file.name });
     } catch (error) {
       onError(error instanceof Error ? error.message : "No se pudo añadir el archivo");
     }
   };
 
+  const expandedNode = expanded ? (nodes.find((node) => node.id === expanded.id) ?? null) : null;
+
   return (
     <CanvasRuntimeContext.Provider value={runtime}>
-      <div className="canvas-board">
+      <div
+        className="canvas-board"
+        onPointerMove={(e) => {
+          lastFlowPoint.current = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+        }}
+      >
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -349,15 +536,42 @@ function CanvasBoard({
           }}
           connectionMode={ConnectionMode.Loose}
           onConnect={onConnect}
-          onPaneClick={() => setMediaMenu(null)}
-          isValidConnection={(c) => isAllowedConnection(c, edgesRef.current)}
-          onDoubleClick={(e) => {
-            const pane = (e.target as HTMLElement).closest(".react-flow__pane");
-            if (!pane) return;
+          onPaneClick={(e) => {
+            closeOverlays();
+            const now = performance.now();
+            const prev = lastPaneClick.current;
+            const dt = now - prev.t;
+            const dist = Math.hypot(e.clientX - prev.x, e.clientY - prev.y);
+            lastPaneClick.current = { t: now, x: e.clientX, y: e.clientY };
+            const isDouble = dt > 0 && dt < 400 && dist < 12;
+            if (!isDouble) return;
             addNode("note", {}, screenToFlowPosition({ x: e.clientX, y: e.clientY }));
           }}
+          onNodeContextMenu={(e, node) => {
+            e.preventDefault();
+            const selected = selectedNodeIds(nodesRef.current);
+            const ids = selected.includes(node.id) ? selected : [node.id];
+            if (!selected.includes(node.id)) {
+              setNodes(selectOnly(nodesRef.current, [node.id]));
+            }
+            setContextMenu({ kind: "node", x: e.clientX, y: e.clientY, ids });
+            setMediaMenu(null);
+          }}
+          onPaneContextMenu={(e) => {
+            e.preventDefault();
+            setContextMenu({
+              kind: "pane",
+              x: e.clientX,
+              y: e.clientY,
+              flow: screenToFlowPosition({ x: e.clientX, y: e.clientY }),
+            });
+            setMediaMenu(null);
+          }}
+          isValidConnection={(c) => isAllowedConnection(c, edgesRef.current)}
           minZoom={0.25}
           maxZoom={2}
+          zoomOnDoubleClick={false}
+          panActivationKeyCode={null}
           deleteKeyCode={["Backspace", "Delete"]}
           colorMode="dark"
           panOnScroll
@@ -446,6 +660,20 @@ function CanvasBoard({
             void onFile(file);
           }}
         />
+        {contextMenu ? (
+          <NodeContextMenu
+            kind={contextMenu.kind}
+            x={contextMenu.x}
+            y={contextMenu.y}
+            canPaste={clipboard !== null}
+            onClose={() => setContextMenu(null)}
+            onCopy={onCopy}
+            onCut={onCut}
+            onClone={onClone}
+            onDelete={onDelete}
+            onPaste={onPaste}
+          />
+        ) : null}
       </div>
 
       {picker ? (
@@ -473,6 +701,11 @@ function CanvasBoard({
           }}
         />
       ) : null}
+      {expanded && expandedNode ? (
+        <div className="canvas-node-modal-layer">
+          <NodeModal key={expanded.id} node={expandedNode} origin={expanded.origin} onClose={() => setExpanded(null)} />
+        </div>
+      ) : null}
     </CanvasRuntimeContext.Provider>
   );
 }
@@ -491,31 +724,35 @@ export function IdeaCanvas({
   onError: (message: string) => void;
 }) {
   const [assetUrls, setAssetUrls] = useState<Record<string, string>>({});
+  const [assetBlobs, setAssetBlobs] = useState<Record<string, Blob>>({});
   const urlsRef = useRef(assetUrls);
   urlsRef.current = assetUrls;
 
   useEffect(() => {
     let cancelled = false;
-    const created: string[] = [];
     void getCanvas(idea.id).then((graph) => {
       if (cancelled) return;
-      const next: Record<string, string> = {};
+      const nextUrls: Record<string, string> = {};
+      const nextBlobs: Record<string, Blob> = {};
       for (const asset of graph.assets) {
         const url = URL.createObjectURL(asset.blob);
-        created.push(url);
-        next[asset.id] = url;
+        nextUrls[asset.id] = url;
+        nextBlobs[asset.id] = asset.blob;
       }
-      setAssetUrls(next);
+      setAssetUrls(nextUrls);
+      setAssetBlobs(nextBlobs);
     });
     return () => {
       cancelled = true;
       for (const url of Object.values(urlsRef.current)) URL.revokeObjectURL(url);
       setAssetUrls({});
+      setAssetBlobs({});
     };
   }, [idea.id]);
 
-  const rememberAssetUrl = useCallback((id: string, url: string) => {
+  const rememberAsset = useCallback((id: string, blob: Blob, url: string) => {
     setAssetUrls((current) => ({ ...current, [id]: url }));
+    setAssetBlobs((current) => ({ ...current, [id]: blob }));
   }, []);
 
   return (
@@ -537,7 +774,8 @@ export function IdeaCanvas({
           idea={idea}
           ideas={ideas}
           assetUrls={assetUrls}
-          rememberAssetUrl={rememberAssetUrl}
+          assetBlobs={assetBlobs}
+          rememberAsset={rememberAsset}
           onOpenIdea={onOpenIdea}
           onError={onError}
         />

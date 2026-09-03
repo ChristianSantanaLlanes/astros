@@ -255,6 +255,7 @@ export function App() {
 
       if (canvasOpen) {
         if (key === "Escape") {
+          if (document.querySelector(".canvas-node-modal")) return;
           e.preventDefault();
           setCanvasOpen(false);
         }
@@ -417,8 +418,10 @@ export function App() {
 
   const sidebarChrome = (
     <>
-      <motion.div
+      <motion.a
+        href="/"
         className="workspace"
+        aria-label="Volver a Forge"
         initial={bootHidden(boot, reduced, { y: 8 })}
         animate={shown(reduced)}
         transition={enterTransition(reduced, navDelay())}
@@ -427,8 +430,8 @@ export function App() {
         <div>
           <div className="workspace-name">Forge</div>
         </div>
-        <span className="workspace-meta">IDEA</span>
-      </motion.div>
+        <span className="workspace-meta">DASH</span>
+      </motion.a>
       <motion.button
         className="nav-search"
         onClick={() => setOverlay("command")}
