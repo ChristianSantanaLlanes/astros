@@ -1495,12 +1495,12 @@ button {
   .activity {
     padding: 4px 16px 16px;
   }
-  .primary-label,
-  .primary .kbd,
-  .primary kbd {
+  .topbar .primary-label,
+  .topbar .primary .kbd,
+  .topbar .primary kbd {
     display: none;
   }
-  .primary {
+  .topbar .primary {
     width: 32px;
     padding: 0;
     justify-content: center;
@@ -1713,8 +1713,18 @@ button {
 .canvas-url-actions {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: 8px;
+  padding: 4px 16px 4px;
+}
+
+.canvas-url-actions .chip,
+.canvas-url-actions .primary {
+  height: 28px;
   padding: 0 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  width: auto;
 }
 
 .canvas-node {
