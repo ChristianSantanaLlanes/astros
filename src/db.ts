@@ -23,7 +23,11 @@ interface ForgeDB extends DBSchema {
   };
   meta: {
     key: string;
-    value: { key: string; nextNumber: number };
+    value: {
+      key: string;
+      nextNumber?: number;
+      lastCompletedAt?: number;
+    };
   };
   canvasNodes: {
     key: string;
@@ -182,7 +186,7 @@ export async function createIdea(input: {
   if (!title) throw new Error("El título es obligatorio");
   const database = await db();
   const meta = (await database.get("meta", "counters")) ?? { key: "counters", nextNumber: 1 };
-  const number = meta.nextNumber;
+  const number = meta.nextNumber ?? 1;
   const now = Date.now();
   const sameStatus = (await database.getAllFromIndex("ideas", "by_status_order")).filter(
     (i) => i.status === (input.status ?? "inbox"),
@@ -425,4 +429,89 @@ export function searchIdeas(ideas: Idea[], query: string, catalog: Label[] = [])
     const hay = `${idea.identifier} ${idea.title} ${idea.description} ${labelText}`.toLowerCase();
     return hay.includes(q);
   });
+}
+
+export type DbSnapshot = {
+  ideas: Idea[];
+  comments: Comment[];
+  labels: Label[];
+  canvasNodes: CanvasNode[];
+  canvasEdges: CanvasEdge[];
+  canvasAssets: CanvasAsset[];
+  nextNumber: number;
+};
+
+export async function exportSnapshot(): Promise<DbSnapshot> {
+  await ensureSeed();
+  const database = await db();
+  const [ideas, comments, labels, canvasNodes, canvasEdges, canvasAssets, meta] = await Promise.all([
+    database.getAll("ideas"),
+    database.getAll("comments"),
+    database.getAll("labels"),
+    database.getAll("canvasNodes"),
+    database.getAll("canvasEdges"),
+    database.getAll("canvasAssets"),
+    database.get("meta", "counters"),
+  ]);
+  const maxNumber = ideas.reduce((max, idea) => Math.max(max, idea.number), 0);
+  return {
+    ideas,
+    comments,
+    labels,
+    canvasNodes,
+    canvasEdges,
+    canvasAssets,
+    nextNumber: meta?.nextNumber ?? maxNumber + 1,
+  };
+}
+
+export async function replaceAllData(snapshot: DbSnapshot): Promise<void> {
+  const database = await db();
+  const tx = database.transaction(
+    ["ideas", "comments", "labels", "canvasNodes", "canvasEdges", "canvasAssets", "meta"],
+    "readwrite",
+  );
+  await Promise.all([
+    tx.objectStore("ideas").clear(),
+    tx.objectStore("comments").clear(),
+    tx.objectStore("labels").clear(),
+    tx.objectStore("canvasNodes").clear(),
+    tx.objectStore("canvasEdges").clear(),
+    tx.objectStore("canvasAssets").clear(),
+  ]);
+  for (const idea of snapshot.ideas) {
+    await tx.objectStore("ideas").put(idea);
+  }
+  for (const comment of snapshot.comments) {
+    await tx.objectStore("comments").put(comment);
+  }
+  for (const label of snapshot.labels) {
+    await tx.objectStore("labels").put(label);
+  }
+  for (const node of snapshot.canvasNodes) {
+    await tx.objectStore("canvasNodes").put(node);
+  }
+  for (const edge of snapshot.canvasEdges) {
+    await tx.objectStore("canvasEdges").put(edge);
+  }
+  for (const asset of snapshot.canvasAssets) {
+    await tx.objectStore("canvasAssets").put(asset);
+  }
+  const maxNumber = snapshot.ideas.reduce((max, idea) => Math.max(max, idea.number), 0);
+  await tx.objectStore("meta").put({
+    key: "counters",
+    nextNumber: Math.max(snapshot.nextNumber, maxNumber + 1),
+  });
+  await tx.done;
+}
+
+export async function getRitualMeta(): Promise<{ lastCompletedAt: number | null }> {
+  const database = await db();
+  const row = await database.get("meta", "ritual");
+  return { lastCompletedAt: row?.lastCompletedAt ?? null };
+}
+
+export async function setRitualCompleted(at = Date.now()): Promise<void> {
+  const database = await db();
+  await database.put("meta", { key: "ritual", lastCompletedAt: at });
 }

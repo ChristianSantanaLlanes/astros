@@ -1,31 +1,47 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
+import {
+  backupFilename,
+  backupToSnapshot,
+  copyText,
+  downloadJson,
+  ideaToMarkdown,
+  parseBackupJson,
+  snapshotToBackup,
+} from "./backup";
 import { CommandPalette, SearchOverlay } from "./components/Search";
 import { Composer, NavItem } from "./components/Composer";
 import { Detail } from "./components/Detail";
 import { IdeaCanvas } from "./components/canvas/IdeaCanvas";
 import { Empty } from "./components/Empty";
 import { IdeaRow } from "./components/IdeaRow";
+import { Ritual } from "./components/Ritual";
 import { StatusMenu } from "./components/StatusMenu";
 import {
   createIdea,
   deleteIdea,
+  exportSnapshot,
   getCanvas,
+  getRitualMeta,
   listComments,
   listIdeas,
   listLabels,
+  replaceAllData,
   restoreIdea,
   searchIdeas,
+  setRitualCompleted,
   updateIdea,
 } from "./db";
 import { isTypingTarget } from "./format";
 import {
   ChevronIcon,
+  DownloadIcon,
   FilterIcon,
   ForgeMark,
   InboxIcon,
   Kbd,
   PlusIcon,
+  RitualIcon,
   SearchIcon,
   StatusIcon,
   ViewsIcon,
@@ -104,15 +120,20 @@ export function App() {
   const [dragId, setDragId] = useState<string | null>(null);
   const [drop, setDrop] = useState<{ status: Status; beforeId: string | null } | null>(null);
   const [statusMenu, setStatusMenu] = useState<{ x: number; y: number; id: string } | null>(null);
+  const [ritualOpen, setRitualOpen] = useState(false);
+  const [ritualLast, setRitualLast] = useState<number | null>(null);
+  const [dragOverBackup, setDragOverBackup] = useState(false);
   const captureRef = useRef<HTMLInputElement>(null);
+  const restoreInputRef = useRef<HTMLInputElement>(null);
   const reduced = useMotionPreference();
   const mobile = useMediaQuery(MOBILE_MQ);
   const bootStagger = useBootStagger(ready);
 
   const reload = useCallback(async () => {
-    const [rows, catalog] = await Promise.all([listIdeas(), listLabels()]);
+    const [rows, catalog, ritual] = await Promise.all([listIdeas(), listLabels(), getRitualMeta()]);
     setIdeas(rows);
     setLabels(catalog);
+    setRitualLast(ritual.lastCompletedAt);
     setReady(true);
   }, []);
 
@@ -154,6 +175,63 @@ export function App() {
     setOpenId(null);
     setCanvasOpen(false);
     setSidebarOpen(false);
+  };
+
+  const openRitual = () => {
+    setOverlay("none");
+    setStatusMenu(null);
+    setOpenId(null);
+    setCanvasOpen(false);
+    setSidebarOpen(false);
+    setRitualOpen(true);
+  };
+
+  const downloadBackup = async () => {
+    try {
+      const snapshot = await exportSnapshot();
+      const backup = await snapshotToBackup(snapshot);
+      downloadJson(backupFilename(), backup);
+      flash("Backup descargado");
+    } catch (error) {
+      flash(error instanceof Error ? error.message : "No se pudo exportar");
+    }
+  };
+
+  const restoreBackupFile = async (file: File) => {
+    try {
+      const text = await file.text();
+      const backup = parseBackupJson(text);
+      const ok = window.confirm(
+        `Esto reemplaza todas las ideas de este navegador con el backup (${backup.ideas.length} ideas). ¿Continuar?`,
+      );
+      if (!ok) return;
+      await replaceAllData(backupToSnapshot(backup));
+      setOpenId(null);
+      setCanvasOpen(false);
+      setSelected(new Set());
+      setFocusId(null);
+      await reload();
+      flash("Backup restaurado");
+    } catch (error) {
+      flash(error instanceof Error ? error.message : "No se pudo restaurar");
+    }
+  };
+
+  const copyOpenMarkdown = async () => {
+    if (!openId) {
+      flash("Abre una idea primero");
+      return;
+    }
+    const idea = ideas.find((row) => row.id === openId);
+    if (!idea) return;
+    try {
+      const comments = await listComments(openId);
+      const names = new Map(labels.map((label) => [label.id, label.name]));
+      await copyText(ideaToMarkdown(idea, comments, names));
+      flash("Markdown copiado");
+    } catch (error) {
+      flash(error instanceof Error ? error.message : "No se pudo copiar");
+    }
   };
 
   const focusCapture = () => {
@@ -253,6 +331,10 @@ export function App() {
       const key = e.key;
       const letter = key.length === 1 ? key.toLowerCase() : key;
 
+      if (ritualOpen) {
+        return;
+      }
+
       if (canvasOpen) {
         if (key === "Escape") {
           if (document.querySelector(".canvas-node-modal")) return;
@@ -336,6 +418,11 @@ export function App() {
       if (letter === "c" && !e.shiftKey && !e.repeat) {
         e.preventDefault();
         focusCapture();
+        return;
+      }
+      if (letter === "r" && !e.shiftKey && !e.repeat) {
+        e.preventDefault();
+        openRitual();
         return;
       }
       if (key === "/" && !e.repeat) {
@@ -472,6 +559,14 @@ export function App() {
           animateEnter={boot}
           enterDelay={navDelay()}
         />
+        <NavItem
+          icon={<RitualIcon />}
+          label="Vaciar la cabeza"
+          active={false}
+          onClick={openRitual}
+          animateEnter={boot}
+          enterDelay={navDelay()}
+        />
       </div>
       <motion.div
         className="nav-label"
@@ -501,8 +596,24 @@ export function App() {
         animate={shown(reduced)}
         transition={enterTransition(reduced, navDelay())}
       >
+        <div className="sidebar-tools">
+          <button className="sidebar-tool" type="button" onClick={() => void downloadBackup()}>
+            <DownloadIcon size={14} />
+            Backup
+          </button>
+          <button
+            className="sidebar-tool"
+            type="button"
+            onClick={() => restoreInputRef.current?.click()}
+          >
+            Restaurar
+          </button>
+        </div>
         <span className="sidebar-hint">
           <Kbd>C</Kbd> captura
+        </span>
+        <span className="sidebar-hint">
+          <Kbd>R</Kbd> ritual
         </span>
         <span className="sidebar-hint">
           <Kbd>J</Kbd>
@@ -517,7 +628,29 @@ export function App() {
   );
 
   return (
-    <div className="app">
+    <div
+      className={`app${dragOverBackup ? " backup-drop" : ""}`}
+      onDragEnter={(e) => {
+        if (![...e.dataTransfer.types].includes("Files")) return;
+        e.preventDefault();
+        setDragOverBackup(true);
+      }}
+      onDragOver={(e) => {
+        if (![...e.dataTransfer.types].includes("Files")) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "copy";
+      }}
+      onDragLeave={(e) => {
+        if (e.currentTarget === e.target) setDragOverBackup(false);
+      }}
+      onDrop={(e) => {
+        setDragOverBackup(false);
+        const file = e.dataTransfer.files?.[0];
+        if (!file || !file.name.toLowerCase().endsWith(".json")) return;
+        e.preventDefault();
+        void restoreBackupFile(file);
+      }}
+    >
       {mobile ? (
         <AnimatePresence>
           {sidebarOpen ? (
@@ -719,11 +852,39 @@ export function App() {
       ) : null}
 
       <AnimatePresence>
+        {ritualOpen ? (
+          <Ritual
+            key="ritual"
+            ideas={ideas}
+            lastCompletedAt={ritualLast}
+            onClose={() => setRitualOpen(false)}
+            onCreate={async (title) => {
+              await createIdea({ title, status: "inbox" });
+              await reload();
+            }}
+            onPrioritize={async (id) => {
+              await updateIdea(id, { status: "in_progress", priority: 2 });
+              await reload();
+              setFocusId(id);
+            }}
+            onPark={async (ids, action) => {
+              if (action === "planned") {
+                await Promise.all(ids.map((id) => updateIdea(id, { status: "planned" })));
+                await reload();
+              }
+            }}
+            onComplete={async () => {
+              await setRitualCompleted();
+              await reload();
+            }}
+          />
+        ) : null}
         {overlay === "command" ? (
           <CommandPalette
             key="command"
             ideas={ideas}
             labels={labels}
+            openIdeaId={openId}
             onClose={() => setOverlay("none")}
             onCreate={() => {
               setOverlay("none");
@@ -736,6 +897,22 @@ export function App() {
             onSearch={(q) => {
               setQuery(q);
               setOverlay("none");
+            }}
+            onRitual={() => {
+              setOverlay("none");
+              openRitual();
+            }}
+            onBackup={() => {
+              setOverlay("none");
+              void downloadBackup();
+            }}
+            onRestore={() => {
+              setOverlay("none");
+              restoreInputRef.current?.click();
+            }}
+            onCopyMarkdown={() => {
+              setOverlay("none");
+              void copyOpenMarkdown();
             }}
           />
         ) : null}
@@ -790,6 +967,17 @@ export function App() {
           </motion.div>
         ) : null}
       </AnimatePresence>
+      <input
+        ref={restoreInputRef}
+        type="file"
+        accept="application/json,.json"
+        hidden
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (file) void restoreBackupFile(file);
+        }}
+      />
     </div>
   );
 }
