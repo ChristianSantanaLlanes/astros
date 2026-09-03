@@ -308,3 +308,49 @@ export function TrashIcon({ size = 14, className }: IconProps) {
     </svg>
   );
 }
+
+export function DownloadIcon({ size = 14, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 14 14" fill="none" className={className} aria-hidden>
+      <path
+        d="M7 2.2v6.2M4.4 6.2 7 8.8l2.6-2.6M2.5 11.2h9"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function UploadIcon({ size = 14, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 14 14" fill="none" className={className} aria-hidden>
+      <path
+        d="M7 9.2V3M4.4 5.2 7 2.6l2.6 2.6M2.5 11.2h9"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function RitualIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className} aria-hidden>
+      <circle cx="8" cy="8" r="5.2" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M8 4.8v3.4l2.2 1.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function ClipboardIcon({ size = 14, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 14 14" fill="none" className={className} aria-hidden>
+      <rect x="3.2" y="3.5" width="7.6" height="8.2" rx="1.4" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M5.2 3.5V2.8h3.6v.7" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+    </svg>
+  );
+}

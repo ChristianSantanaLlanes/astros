@@ -1,11 +1,19 @@
 import { forwardRef, useEffect, useMemo, useState, type KeyboardEvent, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { searchIdeas } from "../db";
-import { PlusIcon, SearchIcon, StatusIcon } from "../icons";
+import {
+  ClipboardIcon,
+  DownloadIcon,
+  PlusIcon,
+  RitualIcon,
+  SearchIcon,
+  StatusIcon,
+  UploadIcon,
+} from "../icons";
 import { exitEase, fadeQuick, hidden, uiSpring, useMotionPreference } from "../motion";
 import { statusLabel, type Idea, type Label } from "../types";
 
-type ActionId = "new" | "search";
+type ActionId = "new" | "search" | "ritual" | "backup" | "restore" | "copy-markdown";
 
 type ActionHit = {
   id: ActionId;
@@ -118,17 +126,43 @@ function EmptyHits() {
   );
 }
 
+function ActionIcon({ id }: { id: ActionId }) {
+  if (id === "new") return <PlusIcon size={14} />;
+  if (id === "search") return <SearchIcon size={14} />;
+  if (id === "ritual") return <RitualIcon size={14} />;
+  if (id === "backup") return <DownloadIcon size={14} />;
+  if (id === "restore") return <UploadIcon size={14} />;
+  return <ClipboardIcon size={14} />;
+}
+
 export const CommandPalette = forwardRef<
   HTMLDivElement,
   {
     ideas: Idea[];
     labels: Label[];
+    openIdeaId: string | null;
     onClose: () => void;
     onCreate: () => void;
     onOpen: (id: string) => void;
     onSearch: (q: string) => void;
+    onRitual: () => void;
+    onBackup: () => void;
+    onRestore: () => void;
+    onCopyMarkdown: () => void;
   }
->(function CommandPalette({ ideas, labels, onClose, onCreate, onOpen, onSearch }, ref) {
+>(function CommandPalette({
+  ideas,
+  labels,
+  openIdeaId,
+  onClose,
+  onCreate,
+  onOpen,
+  onSearch,
+  onRitual,
+  onBackup,
+  onRestore,
+  onCopyMarkdown,
+}, ref) {
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
   const needle = q.trim().toLowerCase();
@@ -142,10 +176,26 @@ export const CommandPalette = forwardRef<
         title: needle ? `Filtrar “${q.trim()}”` : "Filtrar la vista actual",
         meta: "/",
       },
+      { id: "ritual", kind: "action", title: "Vaciar la cabeza", meta: "R" },
+      { id: "backup", kind: "action", title: "Descargar backup", meta: "" },
+      { id: "restore", kind: "action", title: "Restaurar backup…", meta: "" },
     ];
+    if (openIdeaId) {
+      all.push({ id: "copy-markdown", kind: "action", title: "Copiar idea como Markdown", meta: "" });
+    }
     if (!needle) return all;
-    return all.filter((action) => action.id === "search" || action.title.toLowerCase().includes(needle));
-  }, [needle, q]);
+    return all.filter(
+      (action) =>
+        action.id === "search" ||
+        action.title.toLowerCase().includes(needle) ||
+        (needle.includes("backup") && (action.id === "backup" || action.id === "restore")) ||
+        (needle.includes("export") && action.id === "backup") ||
+        (needle.includes("import") && action.id === "restore") ||
+        (needle.includes("ritual") && action.id === "ritual") ||
+        (needle.includes("vaciar") && action.id === "ritual") ||
+        (needle.includes("markdown") && action.id === "copy-markdown"),
+    );
+  }, [needle, openIdeaId, q]);
 
   const hits = useMemo(() => searchIdeas(ideas, q, labels).slice(0, 20), [ideas, labels, q]);
 
@@ -168,7 +218,11 @@ export const CommandPalette = forwardRef<
     }
     if (item.kind === "action") {
       if (item.id === "new") onCreate();
-      else onSearch(q);
+      else if (item.id === "search") onSearch(q);
+      else if (item.id === "ritual") onRitual();
+      else if (item.id === "backup") onBackup();
+      else if (item.id === "restore") onRestore();
+      else if (item.id === "copy-markdown") onCopyMarkdown();
       return;
     }
     onOpen(item.idea.id);
@@ -214,9 +268,9 @@ export const CommandPalette = forwardRef<
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => run(item)}
               >
-                {item.id === "new" ? <PlusIcon size={14} /> : <SearchIcon size={14} />}
+                <ActionIcon id={item.id} />
                 <span className="title">{item.title}</span>
-                <span className="meta">{item.meta}</span>
+                {item.meta ? <span className="meta">{item.meta}</span> : null}
               </button>
             ) : null,
           )}

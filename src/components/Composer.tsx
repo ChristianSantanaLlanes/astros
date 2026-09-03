@@ -70,7 +70,7 @@ export function NavItem({
 }: {
   icon: ReactNode;
   label: string;
-  count: number;
+  count?: number;
   active: boolean;
   onClick: () => void;
   enterDelay?: number;
@@ -88,7 +88,7 @@ export function NavItem({
     >
       {icon}
       {label}
-      <span className="count">{count}</span>
+      {count !== undefined ? <span className="count">{count}</span> : null}
     </motion.button>
   );
 }

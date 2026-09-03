@@ -497,6 +497,46 @@ button {
   align-items: center;
 }
 
+.sidebar-tools {
+  flex: 1 0 100%;
+  display: flex;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.sidebar-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 6px;
+  color: var(--text-3);
+  font-size: 12px;
+  font-variation-settings: "wght" 510;
+}
+
+.sidebar-tool:hover {
+  background: var(--level2);
+  color: var(--text-1);
+}
+
+.app.backup-drop::after {
+  content: "Suelta el backup JSON para restaurar";
+  position: fixed;
+  inset: 16px;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  border: 1.5px dashed rgba(94, 106, 210, 0.7);
+  border-radius: 16px;
+  background: rgba(8, 9, 10, 0.72);
+  color: var(--text-1);
+  font-size: 15px;
+  font-variation-settings: "wght" 560;
+  pointer-events: none;
+}
+
 .sidebar-hint {
   display: inline-flex;
   align-items: center;
@@ -1797,6 +1837,325 @@ button {
   color: var(--accent-hover);
   font-size: 13px;
   font-variation-settings: "wght" 510;
+}
+
+.ritual-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(8, 9, 10, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+.ritual-panel {
+  width: min(560px, 100%);
+  max-height: min(860px, calc(100vh - 48px));
+  overflow: auto;
+  background: var(--level1);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-float);
+  padding: 20px 20px 16px;
+}
+
+.ritual-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ritual-kicker {
+  margin: 0 0 4px;
+  color: var(--text-4);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-variation-settings: "wght" 560;
+}
+
+.ritual-head h2 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  font-variation-settings: "wght" 590;
+}
+
+.ritual-sub {
+  margin: 6px 0 0;
+  color: var(--text-4);
+  font-size: 12px;
+}
+
+.ritual-steps {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin: 0 0 18px;
+  padding: 0;
+}
+
+.ritual-steps li {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--level2);
+  color: var(--text-4);
+  font-size: 11px;
+  font-variation-settings: "wght" 510;
+  text-align: center;
+}
+
+.ritual-steps li.active {
+  color: var(--text-1);
+  background: rgba(94, 106, 210, 0.18);
+  outline: 1px solid rgba(94, 106, 210, 0.45);
+}
+
+.ritual-steps li[data-done="true"] {
+  color: var(--text-3);
+}
+
+.ritual-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ritual-copy {
+  margin: 0;
+  color: var(--text-3);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.ritual-capture {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: var(--level2);
+  border: 1px solid var(--border);
+}
+
+.ritual-capture input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  color: var(--text-1);
+  font-size: 14px;
+  outline: none;
+}
+
+.ritual-meta-row,
+.ritual-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-4);
+  font-size: 12px;
+}
+
+.ritual-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 280px;
+  overflow: auto;
+}
+
+.ritual-list.compact li,
+.ritual-list .ritual-more,
+.ritual-list .ritual-empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 8px;
+  color: var(--text-3);
+  font-size: 13px;
+}
+
+.ritual-list .ident {
+  color: var(--text-4);
+  font-size: 12px;
+  font-feature-settings: "tnum" 1, "cv01", "ss03";
+}
+
+.ritual-list .title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ritual-pick {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: var(--text-2);
+  text-align: left;
+}
+
+.ritual-pick:hover,
+.ritual-pick.active {
+  background: var(--level2);
+  color: var(--text-1);
+}
+
+.ritual-pick .meta,
+.ritual-pick .kbd {
+  margin-left: auto;
+}
+
+.ritual-chosen {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(94, 106, 210, 0.12);
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.ritual-park-options {
+  display: grid;
+  gap: 8px;
+}
+
+.ritual-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--level2);
+  text-align: left;
+  color: var(--text-2);
+}
+
+.ritual-option.active {
+  border-color: rgba(94, 106, 210, 0.55);
+  background: rgba(94, 106, 210, 0.12);
+}
+
+.ritual-option strong {
+  display: block;
+  font-size: 13px;
+  font-variation-settings: "wght" 560;
+  color: var(--text-1);
+}
+
+.ritual-option small {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-4);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.ritual-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.ritual-actions .ghost {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  color: var(--text-3);
+}
+
+.ritual-actions .ghost:hover {
+  background: var(--level2);
+  color: var(--text-1);
+}
+
+.ritual-actions .ritual-hint {
+  margin-right: auto;
+}
+
+.ritual-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ritual-summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--level2);
+  border: 1px solid var(--border);
+}
+
+.ritual-summary-card .label {
+  color: var(--text-4);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ritual-summary-card strong {
+  font-size: 16px;
+  font-variation-settings: "wght" 560;
+}
+
+.ritual-summary-card .meta {
+  color: var(--text-4);
+  font-size: 12px;
+}
+
+.ritual-summary-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.ritual-summary-stats div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--level2);
+  text-align: center;
+}
+
+.ritual-summary-stats strong {
+  font-size: 20px;
+  font-variation-settings: "wght" 590;
+}
+
+.ritual-summary-stats span {
+  color: var(--text-4);
+  font-size: 11px;
+}
+
+.ritual-empty {
+  color: var(--text-4);
+  font-size: 13px;
 }
 
 .danger-button {
