@@ -26,6 +26,45 @@ export type Comment = {
   authorColor?: string;
 };
 
+export type CanvasNodeType = "note" | "idea" | "image" | "video";
+
+export type CanvasNode = {
+  id: string;
+  ideaId: string;
+  type: CanvasNodeType;
+  x: number;
+  y: number;
+  width?: number;
+  height?: number;
+  title: string;
+  body: string;
+  linkedIdeaId?: string;
+  assetId?: string;
+  url?: string;
+};
+
+export type CanvasEdge = {
+  id: string;
+  ideaId: string;
+  source: string;
+  target: string;
+  sourceHandle?: string;
+  targetHandle?: string;
+};
+
+export type CanvasAsset = {
+  id: string;
+  ideaId: string;
+  mimeType: string;
+  blob: Blob;
+};
+
+export type CanvasGraph = {
+  nodes: CanvasNode[];
+  edges: CanvasEdge[];
+  assets: CanvasAsset[];
+};
+
 export const STATUSES: { id: Status; label: string; shortcut: string }[] = [
   { id: "inbox", label: "Bandeja", shortcut: "1" },
   { id: "planned", label: "Por hacer", shortcut: "2" },
