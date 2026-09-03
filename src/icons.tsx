@@ -186,6 +186,47 @@ export function ForgeMark({ size = 18 }: { size?: number }) {
   );
 }
 
+export function GripIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={10} viewBox="0 0 16 10" fill="currentColor" className={className} aria-hidden>
+      <circle cx="3" cy="3" r="1.2" />
+      <circle cx="8" cy="3" r="1.2" />
+      <circle cx="13" cy="3" r="1.2" />
+      <circle cx="3" cy="7" r="1.2" />
+      <circle cx="8" cy="7" r="1.2" />
+      <circle cx="13" cy="7" r="1.2" />
+    </svg>
+  );
+}
+
+export function NoteIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className} aria-hidden>
+      <rect x="3" y="2.5" width="10" height="11" rx="1.6" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M5.5 6h5M5.5 8.5h5M5.5 11h3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function ImageIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className} aria-hidden>
+      <rect x="2.5" y="3.5" width="11" height="9" rx="1.6" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M2.8 11.2 6 8.2l2.4 2.2 1.6-1.6 3.2 2.4" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+      <circle cx="6.1" cy="6.3" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function VideoIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className} aria-hidden>
+      <rect x="2.5" y="4" width="8.2" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M11.2 6.4 13.6 5v6.2L11.2 9.8V6.4Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function CloseIcon({ size = 16, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className} aria-hidden>

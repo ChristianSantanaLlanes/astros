@@ -33,11 +33,13 @@ export function Detail({
   onBack,
   onChange,
   onDelete,
+  onOpenCanvas,
 }: {
   idea: Idea;
   onBack: () => void;
   onChange: (patch: Partial<Pick<Idea, "title" | "description" | "status" | "priority" | "labels">>) => void;
   onDelete: () => void;
+  onOpenCanvas: () => void;
 }) {
   const [title, setTitle] = useState(idea.title);
   const [description, setDescription] = useState(idea.description);
@@ -97,6 +99,9 @@ export function Detail({
           <StatusIcon status={idea.status} />
           <span className="ident">{idea.identifier}</span>
           <span className="spacer" />
+          <button className="chip" type="button" onClick={onOpenCanvas}>
+            Estructura
+          </button>
           <button className="icon-btn" type="button" onClick={onBack} aria-label="Cerrar">
 
             <CloseIcon />

@@ -3,10 +3,11 @@ import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { CommandPalette, SearchOverlay } from "./components/Search";
 import { Composer, NavItem } from "./components/Composer";
 import { Detail } from "./components/Detail";
+import { IdeaCanvas } from "./components/canvas/IdeaCanvas";
 import { Empty } from "./components/Empty";
 import { IdeaRow } from "./components/IdeaRow";
 import { StatusMenu } from "./components/StatusMenu";
-import { createIdea, deleteIdea, listComments, listIdeas, restoreIdea, searchIdeas, updateIdea } from "./db";
+import { createIdea, deleteIdea, getCanvas, listComments, listIdeas, restoreIdea, searchIdeas, updateIdea } from "./db";
 import { isTypingTarget } from "./format";
 import {
   ChevronIcon,
@@ -35,7 +36,7 @@ import {
   useMotionPreference,
   viewEase,
 } from "./motion";
-import { STATUSES, statusLabel, type Comment, type Idea, type Status } from "./types";
+import { STATUSES, statusLabel, type CanvasGraph, type Comment, type Idea, type Status } from "./types";
 
 type View = "active" | "all" | Status;
 type Overlay = "none" | "command" | "search";
@@ -83,6 +84,7 @@ export function App() {
   const [query, setQuery] = useState("");
   const [focusId, setFocusId] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [canvasOpen, setCanvasOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [overlay, setOverlay] = useState<Overlay>("none");
   const [collapsed, setCollapsed] = useState<Set<Status>>(new Set());
@@ -138,6 +140,7 @@ export function App() {
   const selectView = (next: View) => {
     setView(next);
     setOpenId(null);
+    setCanvasOpen(false);
     setSidebarOpen(false);
   };
 
@@ -159,9 +162,9 @@ export function App() {
     await reload();
   };
 
-  const restoreSnapshots = async (snapshots: Array<{ idea: Idea; comments: Comment[] }>) => {
+  const restoreSnapshots = async (snapshots: Array<{ idea: Idea; comments: Comment[]; canvas: CanvasGraph }>) => {
     for (const snap of snapshots) {
-      await restoreIdea(snap.idea, snap.comments);
+      await restoreIdea(snap.idea, snap.comments, snap.canvas);
     }
     await reload();
     flash("Idea restaurada");
@@ -169,15 +172,19 @@ export function App() {
 
   const remove = async (ids: string[]) => {
     if (!ids.length) return;
-    const snapshots: Array<{ idea: Idea; comments: Comment[] }> = [];
+    const snapshots: Array<{ idea: Idea; comments: Comment[]; canvas: CanvasGraph }> = [];
     for (const id of ids) {
       const idea = ideas.find((row) => row.id === id);
       if (!idea) continue;
       const comments = await listComments(id);
-      snapshots.push({ idea, comments });
+      const canvas = await getCanvas(id);
+      snapshots.push({ idea, comments, canvas });
       await deleteIdea(id);
     }
-    if (openId && ids.includes(openId)) setOpenId(null);
+    if (openId && ids.includes(openId)) {
+      setOpenId(null);
+      setCanvasOpen(false);
+    }
     setSelected((s) => {
       const n = new Set(s);
       for (const id of ids) n.delete(id);
@@ -233,6 +240,14 @@ export function App() {
       const meta = e.metaKey || e.ctrlKey;
       const key = e.key;
       const letter = key.length === 1 ? key.toLowerCase() : key;
+
+      if (canvasOpen) {
+        if (key === "Escape") {
+          e.preventDefault();
+          setCanvasOpen(false);
+        }
+        return;
+      }
 
       if (meta && letter === "k") {
         e.preventDefault();
@@ -647,15 +662,33 @@ export function App() {
               >
                 <Detail
                   idea={openIdea}
-                  onBack={() => setOpenId(null)}
+                  onBack={() => {
+                    setCanvasOpen(false);
+                    setOpenId(null);
+                  }}
                   onChange={(next) => void patch(openIdea.id, next)}
                   onDelete={() => void remove([openIdea.id])}
+                  onOpenCanvas={() => setCanvasOpen(true)}
                 />
               </motion.div>
             ) : null}
           </AnimatePresence>
         </div>
       </main>
+
+      {canvasOpen && openIdea ? (
+        <IdeaCanvas
+          idea={openIdea}
+          ideas={ideas}
+          onClose={() => setCanvasOpen(false)}
+          onOpenIdea={(id) => {
+            setCanvasOpen(false);
+            setOpenId(id);
+            setFocusId(id);
+          }}
+          onError={(message) => flash(message)}
+        />
+      ) : null}
 
       <AnimatePresence>
         {overlay === "command" ? (

@@ -1,8 +1,9 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
-import type { Comment, Idea, Priority, Status } from "./types";
+import type { CanvasAsset, CanvasEdge, CanvasGraph, CanvasNode, Comment, Idea, Priority, Status } from "./types";
 import { seedIdeas } from "./seed";
 
 const TEAM = "IDEA";
+export const MAX_CANVAS_FILE_BYTES = 25 * 1024 * 1024;
 
 interface ForgeDB extends DBSchema {
   ideas: {
@@ -23,21 +24,46 @@ interface ForgeDB extends DBSchema {
     key: string;
     value: { key: string; nextNumber: number };
   };
+  canvasNodes: {
+    key: string;
+    value: CanvasNode;
+    indexes: { by_idea: string };
+  };
+  canvasEdges: {
+    key: string;
+    value: CanvasEdge;
+    indexes: { by_idea: string };
+  };
+  canvasAssets: {
+    key: string;
+    value: CanvasAsset;
+    indexes: { by_idea: string };
+  };
 }
 
 let dbPromise: Promise<IDBPDatabase<ForgeDB>> | null = null;
 
 function db(): Promise<IDBPDatabase<ForgeDB>> {
   if (!dbPromise) {
-    dbPromise = openDB<ForgeDB>("forge-ideas-6", 1, {
-      upgrade(database) {
-        const ideas = database.createObjectStore("ideas", { keyPath: "id" });
-        ideas.createIndex("by_status_order", ["status", "order"]);
-        ideas.createIndex("by_updated", "updatedAt");
-        ideas.createIndex("by_number", "number");
-        const comments = database.createObjectStore("comments", { keyPath: "id" });
-        comments.createIndex("by_idea", "ideaId");
-        database.createObjectStore("meta", { keyPath: "key" });
+    dbPromise = openDB<ForgeDB>("forge-ideas-6", 2, {
+      upgrade(database, oldVersion) {
+        if (oldVersion < 1) {
+          const ideas = database.createObjectStore("ideas", { keyPath: "id" });
+          ideas.createIndex("by_status_order", ["status", "order"]);
+          ideas.createIndex("by_updated", "updatedAt");
+          ideas.createIndex("by_number", "number");
+          const comments = database.createObjectStore("comments", { keyPath: "id" });
+          comments.createIndex("by_idea", "ideaId");
+          database.createObjectStore("meta", { keyPath: "key" });
+        }
+        if (oldVersion < 2) {
+          const nodes = database.createObjectStore("canvasNodes", { keyPath: "id" });
+          nodes.createIndex("by_idea", "ideaId");
+          const edges = database.createObjectStore("canvasEdges", { keyPath: "id" });
+          edges.createIndex("by_idea", "ideaId");
+          const assets = database.createObjectStore("canvasAssets", { keyPath: "id" });
+          assets.createIndex("by_idea", "ideaId");
+        }
       },
     });
   }
@@ -153,23 +179,104 @@ export async function moveIdea(id: string, status: Status, order: number): Promi
 
 export async function deleteIdea(id: string): Promise<void> {
   const database = await db();
-  const tx = database.transaction(["ideas", "comments"], "readwrite");
+  const tx = database.transaction(
+    ["ideas", "comments", "canvasNodes", "canvasEdges", "canvasAssets"],
+    "readwrite",
+  );
   await tx.objectStore("ideas").delete(id);
   const comments = await tx.objectStore("comments").index("by_idea").getAll(id);
   for (const comment of comments) {
     await tx.objectStore("comments").delete(comment.id);
   }
+  const nodes = await tx.objectStore("canvasNodes").index("by_idea").getAll(id);
+  for (const node of nodes) {
+    await tx.objectStore("canvasNodes").delete(node.id);
+  }
+  const edges = await tx.objectStore("canvasEdges").index("by_idea").getAll(id);
+  for (const edge of edges) {
+    await tx.objectStore("canvasEdges").delete(edge.id);
+  }
+  const assets = await tx.objectStore("canvasAssets").index("by_idea").getAll(id);
+  for (const asset of assets) {
+    await tx.objectStore("canvasAssets").delete(asset.id);
+  }
   await tx.done;
 }
 
-export async function restoreIdea(idea: Idea, comments: Comment[]): Promise<void> {
+export async function restoreIdea(idea: Idea, comments: Comment[], canvas?: CanvasGraph): Promise<void> {
   const database = await db();
-  const tx = database.transaction(["ideas", "comments"], "readwrite");
+  const tx = database.transaction(
+    ["ideas", "comments", "canvasNodes", "canvasEdges", "canvasAssets"],
+    "readwrite",
+  );
   await tx.objectStore("ideas").put(idea);
   for (const comment of comments) {
     await tx.objectStore("comments").put(comment);
   }
+  if (canvas) {
+    for (const node of canvas.nodes) {
+      await tx.objectStore("canvasNodes").put(node);
+    }
+    for (const edge of canvas.edges) {
+      await tx.objectStore("canvasEdges").put(edge);
+    }
+    for (const asset of canvas.assets) {
+      await tx.objectStore("canvasAssets").put(asset);
+    }
+  }
   await tx.done;
+}
+
+export async function getCanvas(ideaId: string): Promise<CanvasGraph> {
+  const database = await db();
+  const [nodes, edges, assets] = await Promise.all([
+    database.getAllFromIndex("canvasNodes", "by_idea", ideaId),
+    database.getAllFromIndex("canvasEdges", "by_idea", ideaId),
+    database.getAllFromIndex("canvasAssets", "by_idea", ideaId),
+  ]);
+  return { nodes, edges, assets };
+}
+
+export async function replaceCanvas(ideaId: string, nodes: CanvasNode[], edges: CanvasEdge[]): Promise<void> {
+  const database = await db();
+  const tx = database.transaction(["canvasNodes", "canvasEdges", "canvasAssets"], "readwrite");
+  const existingNodes = await tx.objectStore("canvasNodes").index("by_idea").getAll(ideaId);
+  const existingEdges = await tx.objectStore("canvasEdges").index("by_idea").getAll(ideaId);
+  const existingAssets = await tx.objectStore("canvasAssets").index("by_idea").getAll(ideaId);
+  const nextNodeIds = new Set(nodes.map((node) => node.id));
+  const nextEdgeIds = new Set(edges.map((edge) => edge.id));
+  const keptAssetIds = new Set(nodes.map((node) => node.assetId).filter((id): id is string => Boolean(id)));
+  for (const node of existingNodes) {
+    if (!nextNodeIds.has(node.id)) await tx.objectStore("canvasNodes").delete(node.id);
+  }
+  for (const edge of existingEdges) {
+    if (!nextEdgeIds.has(edge.id)) await tx.objectStore("canvasEdges").delete(edge.id);
+  }
+  for (const asset of existingAssets) {
+    if (!keptAssetIds.has(asset.id)) await tx.objectStore("canvasAssets").delete(asset.id);
+  }
+  for (const node of nodes) {
+    await tx.objectStore("canvasNodes").put(node);
+  }
+  for (const edge of edges) {
+    await tx.objectStore("canvasEdges").put(edge);
+  }
+  await tx.done;
+}
+
+export async function putCanvasAsset(ideaId: string, file: Blob): Promise<CanvasAsset> {
+  if (file.size > MAX_CANVAS_FILE_BYTES) {
+    throw new Error("El archivo supera 25 MB");
+  }
+  const asset: CanvasAsset = {
+    id: uid(),
+    ideaId,
+    mimeType: file.type || "application/octet-stream",
+    blob: file,
+  };
+  const database = await db();
+  await database.put("canvasAssets", asset);
+  return asset;
 }
 
 export async function listComments(ideaId: string): Promise<Comment[]> {
