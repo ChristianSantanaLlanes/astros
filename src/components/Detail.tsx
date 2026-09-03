@@ -98,6 +98,7 @@ export function Detail({
           <span className="ident">{idea.identifier}</span>
           <span className="spacer" />
           <button className="icon-btn" type="button" onClick={onBack} aria-label="Cerrar">
+
             <CloseIcon />
           </button>
         </div>
