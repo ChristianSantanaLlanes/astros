@@ -488,28 +488,28 @@ button {
 
 .sidebar-foot {
   margin-top: auto;
-  padding: 8px 6px 4px;
+  padding: 12px 6px 8px;
   color: var(--text-4);
   font-size: 11px;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 10px;
+  gap: 10px 14px;
   align-items: center;
 }
 
 .sidebar-tools {
   flex: 1 0 100%;
   display: flex;
-  gap: 6px;
-  margin-bottom: 4px;
+  gap: 8px;
+  margin-bottom: 2px;
 }
 
 .sidebar-tool {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 26px;
-  padding: 0 8px;
+  height: 28px;
+  padding: 0 10px;
   border-radius: 6px;
   color: var(--text-3);
   font-size: 12px;
@@ -540,13 +540,13 @@ button {
 .sidebar-hint {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   white-space: nowrap;
 }
 
 .sidebar-hint-sep {
   color: var(--text-4);
-  margin: 0 -1px;
+  margin: 0 1px;
 }
 
 .main {
