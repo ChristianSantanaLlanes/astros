@@ -70,7 +70,7 @@ export const PIECES: Piece[] = [
   {
     id: "busqueda",
     title: "Búsqueda",
-    brief: "⌘K secciona Commands / Issues; / filtra.",
+    brief: "⌘K secciona Commands / Ideas; / filtra.",
     status: "won",
     winner: "ours",
     gap: "Filtro en vivo y empty state accionable.",

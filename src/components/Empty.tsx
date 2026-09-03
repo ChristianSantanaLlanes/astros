@@ -24,27 +24,27 @@ export function Empty({
       </div>
       {searching ? (
         <>
-          <h2>No matching ideas</h2>
-          <p>No identifier, title, or label matches “{clip(query)}”.</p>
+          <h2>No se encontraron ideas</h2>
+          <p>No hay coincidencias para “{clip(query)}”.</p>
           <div className="hint-row">
             <button className="chip" type="button" onClick={onClear}>
-              Clear search
+              Limpiar búsqueda
             </button>
             <button className="primary" type="button" onClick={onCreate}>
-              New idea
+              Nueva idea
             </button>
           </div>
         </>
       ) : (
         <>
-          <h2>No ideas</h2>
-          <p>There are no ideas in this view.</p>
+          <h2>No hay ideas aquí</h2>
+          <p>Captura lo que tienes en mente. Podrás priorizarlo, moverlo y convertirlo en algo concreto.</p>
           <div className="hint-row">
             <button className="primary" type="button" onClick={onCreate}>
-              New idea
+              Crear primera idea
             </button>
             <span>
-              Press <Kbd>C</Kbd>
+              Pulsa <Kbd>C</Kbd>
             </span>
           </div>
         </>

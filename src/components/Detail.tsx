@@ -1,26 +1,17 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { AnimatePresence } from "motion/react";
 import { addComment, listComments } from "../db";
-import { formatRelative, formatTime, prFor } from "../format";
-import { CloseIcon, ForgeMark, GitPullIcon, PriorityIcon, StatusIcon } from "../icons";
-import { ownerFor } from "../owners";
+import { formatRelative, formatTime } from "../format";
+import { CloseIcon, ForgeMark, PriorityIcon, StatusIcon } from "../icons";
 import {
   LABEL_COLORS,
-  STATUSES,
   priorityLabel,
   statusLabel,
   type Comment,
   type Idea,
-  type Priority,
 } from "../types";
-
-function cycleStatus(status: Idea["status"]): Idea["status"] {
-  const i = STATUSES.findIndex((s) => s.id === status);
-  return STATUSES[(i + 1) % STATUSES.length]!.id;
-}
-
-function cyclePriority(priority: Priority): Priority {
-  return ((priority + 1) % 5) as Priority;
-}
+import { PriorityMenu } from "./PriorityMenu";
+import { StatusMenu } from "./StatusMenu";
 
 function autosize(el: HTMLTextAreaElement | null) {
   if (!el) return;
@@ -30,8 +21,8 @@ function autosize(el: HTMLTextAreaElement | null) {
 
 function commentAuthor(comment: Comment) {
   return {
-    name: comment.authorName ?? "You",
-    initials: comment.authorInitials ?? "Y",
+    name: comment.authorName ?? "Tú",
+    initials: comment.authorInitials ?? "T",
     color: comment.authorColor ?? "#3a3f4b",
     you: !comment.authorName,
   };
@@ -41,16 +32,19 @@ export function Detail({
   idea,
   onBack,
   onChange,
+  onDelete,
 }: {
   idea: Idea;
   onBack: () => void;
   onChange: (patch: Partial<Pick<Idea, "title" | "description" | "status" | "priority" | "labels">>) => void;
+  onDelete: () => void;
 }) {
   const [title, setTitle] = useState(idea.title);
   const [description, setDescription] = useState(idea.description);
   const [comments, setComments] = useState<Comment[]>([]);
   const [draft, setDraft] = useState("");
   const [now] = useState(() => Date.now());
+  const [propMenu, setPropMenu] = useState<{ kind: "status" | "priority"; x: number; y: number } | null>(null);
   const titleRef = useRef<HTMLTextAreaElement>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const sending = useRef(false);
@@ -93,32 +87,25 @@ export function Detail({
       });
   };
 
-  const owner = ownerFor(idea.number);
-  const statusActor = ownerFor(idea.number + 1);
-  const labelActor = ownerFor(idea.number + 2);
-  const pr = prFor(idea);
-  const workSeconds = 8 + (idea.number % 7) * 3;
-  const brief = idea.description.split("\n")[0]?.trim() ?? idea.title;
-
   return (
-    <div className="detail-shell">
+    <>
       <div className="detail">
         <div className="detail-head">
           <button className="chip" type="button" onClick={onBack}>
-            My issues
+            Mis ideas
           </button>
           <StatusIcon status={idea.status} />
           <span className="ident">{idea.identifier}</span>
           <span className="spacer" />
-          <button className="icon-btn" type="button" onClick={onBack} aria-label="Close">
+          <button className="icon-btn" type="button" onClick={onBack} aria-label="Cerrar">
             <CloseIcon />
           </button>
         </div>
         <textarea
           ref={titleRef}
           className="detail-title"
-          aria-label="Title"
-          placeholder="Issue title"
+          aria-label="Título"
+          placeholder="Título de la idea"
           rows={1}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -133,189 +120,112 @@ export function Detail({
         <textarea
           ref={bodyRef}
           className="detail-body"
-          aria-label="Description"
-          placeholder="Add description…"
+          aria-label="Descripción"
+          placeholder="Añade una descripción…"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           onBlur={commitDescription}
         />
-        <div className="detail-split">
-          <section className="activity">
-            <h2 className="activity-label">Activity</h2>
-            <div className="activity-item">
-              <span className="activity-avatar" aria-hidden>
-                <ForgeMark size={18} />
-              </span>
-              <div>
-                <p>
-                  <strong>Forge</strong> created the issue
-                </p>
-                <time dateTime={new Date(idea.createdAt).toISOString()}>{formatRelative(idea.createdAt, now)}</time>
-              </div>
+        <section className="activity">
+          <h2 className="activity-label">Actividad</h2>
+          <div className="activity-item">
+            <span className="activity-avatar" aria-hidden>
+              <ForgeMark size={18} />
+            </span>
+            <div>
+              <p>
+                <strong>Forge</strong> creó la idea
+              </p>
+              <time dateTime={new Date(idea.createdAt).toISOString()}>{formatRelative(idea.createdAt, now)}</time>
             </div>
-            {idea.labels.length > 0 ? (
-              <div className="activity-item">
-                <span className="activity-avatar" aria-hidden style={{ background: labelActor.color }}>
-                  {labelActor.initials}
+          </div>
+          {comments.map((comment) => {
+            const author = commentAuthor(comment);
+            return (
+              <div className="activity-item comment" key={comment.id}>
+                <span
+                  className={`activity-avatar${author.you ? " you" : ""}`}
+                  aria-hidden
+                  style={author.you ? undefined : { background: author.color }}
+                >
+                  {author.initials}
                 </span>
                 <div>
                   <p>
-                    <strong>{labelActor.name}</strong> added the labels{" "}
-                    {idea.labels.map((label, i) => (
-                      <span key={label}>
-                        {i > 0 ? " and " : null}
-                        <span className="activity-label-chip">
-                          <span className="dot" style={{ background: LABEL_COLORS[label] ?? "#8a8f98" }} />
-                          {label}
-                        </span>
-                      </span>
-                    ))}
+                    <strong>{author.name}</strong>
+                    <time dateTime={new Date(comment.createdAt).toISOString()}>
+                      {formatRelative(comment.createdAt, now)}
+                    </time>
                   </p>
-                  <time dateTime={new Date(idea.createdAt + 120_000).toISOString()}>
-                    {formatRelative(idea.createdAt + 120_000, now)}
-                  </time>
+                  <div className="comment-body">{comment.body}</div>
                 </div>
               </div>
-            ) : null}
-            {idea.status !== "backlog" ? (
-              <div className="activity-item">
-                <span className="activity-avatar" aria-hidden style={{ background: statusActor.color }}>
-                  {statusActor.initials}
-                </span>
-                <div>
-                  <p>
-                    <strong>{statusActor.name}</strong> set status to {statusLabel(idea.status)}
-                  </p>
-                  <time dateTime={new Date(idea.updatedAt).toISOString()}>{formatRelative(idea.updatedAt, now)}</time>
-                </div>
-              </div>
-            ) : null}
-            {pr ? (
-              <div className="activity-item">
-                <span className="activity-avatar pr-avatar" aria-hidden>
-                  <GitPullIcon size={12} />
-                </span>
-                <div>
-                  <p>
-                    <strong>{statusActor.name}</strong> opened pull request <span className="pr">{pr}</span>
-                  </p>
-                  <time dateTime={new Date(idea.updatedAt).toISOString()}>{formatRelative(idea.updatedAt, now)}</time>
-                </div>
-              </div>
-            ) : null}
-            {comments.map((comment) => {
-              const author = commentAuthor(comment);
-              return (
-                <div className="activity-item comment" key={comment.id}>
-                  <span
-                    className={`activity-avatar${author.you ? " you" : ""}`}
-                    aria-hidden
-                    style={author.you ? undefined : { background: author.color }}
-                  >
-                    {author.initials}
-                  </span>
-                  <div>
-                    <p>
-                      <strong>{author.name}</strong>
-                      <time dateTime={new Date(comment.createdAt).toISOString()}>
-                        {formatRelative(comment.createdAt, now)}
-                      </time>
-                    </p>
-                    <div className="comment-body">{comment.body}</div>
-                  </div>
-                </div>
-              );
-            })}
-            <div className="activity-item compose">
-              <span className="activity-avatar you" aria-hidden>
-                Y
-              </span>
-              <input
-                className="comment-input"
-                placeholder="Leave a comment…"
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
-                  e.preventDefault();
-                  sendComment();
-                }}
-              />
-            </div>
-          </section>
-          <aside className="work-panel" aria-label="Agent work">
-            <header className="work-head">
-              <span className="work-mark">
-                <ForgeMark size={16} />
-              </span>
-              <div>
-                <strong>Forge</strong>
-                <span>Composer</span>
-              </div>
-            </header>
-            <p className="work-bubble">{brief}</p>
-            <div className="work-meta">
-              <StatusIcon status={idea.status} size={12} />
-              <span className="ident">{idea.identifier}</span> added to context
-            </div>
-            {pr ? (
-              <>
-                <div className="work-meta work-timer">Worked for {workSeconds} sec</div>
-                <p className="work-log">
-                  Pushed and opened a draft PR. Capture is a list row with the same cells as every issue.
-                  {idea.status === "in_progress" ? " Checks running." : " Merged."}
-                </p>
-                <div className="work-pr">
-                  <GitPullIcon size={13} />
-                  <span className="pr">{pr}</span>
-                  {idea.status === "in_progress" ? <span className="cycle">Working</span> : <span className="cycle">Done</span>}
-                </div>
-              </>
-            ) : (
-              <p className="work-log">No pull request yet. Start work to open a draft PR from this issue.</p>
-            )}
-          </aside>
-        </div>
+            );
+          })}
+          <div className="activity-item compose">
+            <span className="activity-avatar you" aria-hidden>
+              T
+            </span>
+            <input
+              className="comment-input"
+              placeholder="Escribe un comentario…"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+                e.preventDefault();
+                sendComment();
+              }}
+            />
+          </div>
+        </section>
       </div>
       <aside className="props">
         <div className="prop">
-          <div className="k">Status</div>
+          <div className="k">Estado</div>
           <button
             className="v"
             type="button"
-            aria-label={`Status: ${statusLabel(idea.status)}. Click to cycle.`}
-            onClick={() => onChange({ status: cycleStatus(idea.status) })}
+            aria-haspopup="menu"
+            aria-expanded={propMenu?.kind === "status"}
+            aria-label={`Estado: ${statusLabel(idea.status)}`}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              const r = e.currentTarget.getBoundingClientRect();
+              setPropMenu((current) =>
+                current?.kind === "status" ? null : { kind: "status", x: r.left, y: r.bottom + 4 },
+              );
+            }}
           >
             <StatusIcon status={idea.status} />
             {statusLabel(idea.status)}
           </button>
         </div>
         <div className="prop">
-          <div className="k">Priority</div>
+          <div className="k">Prioridad</div>
           <button
             className="v"
             type="button"
-            aria-label={`Priority: ${priorityLabel(idea.priority)}. Click to cycle.`}
-            onClick={() => onChange({ priority: cyclePriority(idea.priority) })}
+            aria-haspopup="menu"
+            aria-expanded={propMenu?.kind === "priority"}
+            aria-label={`Prioridad: ${priorityLabel(idea.priority)}`}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              const r = e.currentTarget.getBoundingClientRect();
+              setPropMenu((current) =>
+                current?.kind === "priority" ? null : { kind: "priority", x: r.left, y: r.bottom + 4 },
+              );
+            }}
           >
             <PriorityIcon priority={idea.priority} />
             {priorityLabel(idea.priority)}
           </button>
         </div>
         <div className="prop">
-          <div className="k">Assignee</div>
-          <div className="v">
-            <span className="owner" title={owner.name} style={{ background: owner.color }}>
-              {owner.initials}
-            </span>
-            {owner.name}
-          </div>
-        </div>
-        <div className="prop">
-          <div className="k">Labels</div>
+          <div className="k">Etiquetas</div>
           <div className="v labels-v">
             {idea.labels.length === 0 ? (
-              <span className="muted">No labels</span>
+              <span className="muted">Ninguna</span>
             ) : (
               idea.labels.map((label) => (
                 <span className="label" key={label}>
@@ -327,27 +237,45 @@ export function Detail({
           </div>
         </div>
         <div className="prop">
-          <div className="k">Pull request</div>
-          <div className="v">
-            {pr ? (
-              <>
-                <GitPullIcon size={13} />
-                <span className="pr">{pr}</span>
-              </>
-            ) : (
-              <span className="muted">None</span>
-            )}
-          </div>
-        </div>
-        <div className="prop">
-          <div className="k">Created</div>
+          <div className="k">Creada</div>
           <div className="v">{formatTime(idea.createdAt)}</div>
         </div>
         <div className="prop">
-          <div className="k">Updated</div>
+          <div className="k">Actualizada</div>
           <div className="v">{formatTime(idea.updatedAt)}</div>
         </div>
+        <button className="danger-button" type="button" onClick={onDelete}>
+          Eliminar idea
+        </button>
       </aside>
-    </div>
+      <AnimatePresence>
+        {propMenu?.kind === "status" ? (
+          <StatusMenu
+            key="status"
+            x={propMenu.x}
+            y={propMenu.y}
+            current={idea.status}
+            onClose={() => setPropMenu(null)}
+            onPick={(status) => {
+              onChange({ status });
+              setPropMenu(null);
+            }}
+          />
+        ) : null}
+        {propMenu?.kind === "priority" ? (
+          <PriorityMenu
+            key="priority"
+            x={propMenu.x}
+            y={propMenu.y}
+            current={idea.priority}
+            onClose={() => setPropMenu(null)}
+            onPick={(priority) => {
+              onChange({ priority });
+              setPropMenu(null);
+            }}
+          />
+        ) : null}
+      </AnimatePresence>
+    </>
   );
 }

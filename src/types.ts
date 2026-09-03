@@ -1,4 +1,4 @@
-export type Status = "backlog" | "todo" | "in_progress" | "done" | "canceled";
+export type Status = "inbox" | "planned" | "in_progress" | "done";
 export type Priority = 0 | 1 | 2 | 3 | 4;
 
 export type Idea = {
@@ -10,6 +10,7 @@ export type Idea = {
   status: Status;
   priority: Priority;
   labels: string[];
+  assignee?: string;
   order: number;
   createdAt: number;
   updatedAt: number;
@@ -26,30 +27,25 @@ export type Comment = {
 };
 
 export const STATUSES: { id: Status; label: string; shortcut: string }[] = [
-  { id: "backlog", label: "Backlog", shortcut: "1" },
-  { id: "todo", label: "Todo", shortcut: "2" },
-  { id: "in_progress", label: "In Progress", shortcut: "3" },
-  { id: "done", label: "Done", shortcut: "4" },
-  { id: "canceled", label: "Canceled", shortcut: "5" },
+  { id: "inbox", label: "Bandeja", shortcut: "1" },
+  { id: "planned", label: "Por hacer", shortcut: "2" },
+  { id: "in_progress", label: "En progreso", shortcut: "3" },
+  { id: "done", label: "Completada", shortcut: "4" },
 ];
 
 export const PRIORITIES: { id: Priority; label: string; shortcut: string }[] = [
-  { id: 0, label: "No priority", shortcut: "0" },
-  { id: 1, label: "Urgent", shortcut: "1" },
-  { id: 2, label: "High", shortcut: "2" },
-  { id: 3, label: "Medium", shortcut: "3" },
-  { id: 4, label: "Low", shortcut: "4" },
+  { id: 0, label: "Sin prioridad", shortcut: "0" },
+  { id: 1, label: "Urgente", shortcut: "1" },
+  { id: 2, label: "Alta", shortcut: "2" },
+  { id: 3, label: "Media", shortcut: "3" },
+  { id: 4, label: "Baja", shortcut: "4" },
 ];
 
 export const LABEL_COLORS: Record<string, string> = {
-  Design: "#eb5757",
-  Performance: "#f2c94c",
-  iOS: "#5e6ad2",
-  Android: "#27a644",
-  API: "#26b5ce",
-  Growth: "#f2994a",
-  Infra: "#8a8f98",
-  Research: "#bb87fc",
+  Producto: "#5e6ad2",
+  Personal: "#27a644",
+  Investigación: "#bb87fc",
+  Diseño: "#eb5757",
 };
 
 export function statusLabel(status: Status): string {
@@ -57,7 +53,7 @@ export function statusLabel(status: Status): string {
 }
 
 export function priorityLabel(priority: Priority): string {
-  return PRIORITIES.find((p) => p.id === priority)?.label ?? "No priority";
+  return PRIORITIES.find((p) => p.id === priority)?.label ?? "Sin prioridad";
 }
 
 export function nextStatus(status: Status, dir: 1 | -1): Status {
