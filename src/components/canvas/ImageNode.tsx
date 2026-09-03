@@ -4,11 +4,11 @@ import { useCanvasRuntime } from "./canvasContext";
 import { NodeHandles } from "./NodeHandles";
 
 export function ImageNode({ id, data, selected }: NodeProps<Node<CanvasNodeData, "image">>) {
-  const { assetUrls, onPatchNode } = useCanvasRuntime();
+  const { assetUrls, onPatchNode, expandedId } = useCanvasRuntime();
   const src = (data.assetId ? assetUrls[data.assetId] : undefined) ?? data.url;
   return (
-    <div className={`canvas-node canvas-media${selected ? " selected" : ""}`}>
-      <NodeHandles />
+    <div className={`canvas-node canvas-media${selected ? " selected" : ""}${id === expandedId ? " dimmed" : ""}`}>
+      <NodeHandles nodeId={id} />
       {src ? (
         <img className="canvas-media-img nodrag nopan" src={src} alt={data.title || "Imagen"} />
       ) : (

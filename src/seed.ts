@@ -11,7 +11,7 @@ export function seedIdeas(now: number): Idea[] {
         "Si hay que pulsar C para recordar que se puede capturar, la idea ya se fue. Un campo permanente en la lista: Enter crea y el cursor se queda listo para la siguiente.",
       status: "in_progress",
       priority: 1,
-      labels: ["Producto"],
+      labels: ["label-producto"],
     },
     {
       number: 2,
@@ -20,7 +20,7 @@ export function seedIdeas(now: number): Idea[] {
         "Notas de voz cortas, un título y un sitio donde aterrizan. Sin proyectos, sin sprints: solo el hábito de no perder lo que aparece al andar.",
       status: "inbox",
       priority: 3,
-      labels: ["Personal"],
+      labels: ["label-personal"],
     },
     {
       number: 3,
@@ -29,7 +29,7 @@ export function seedIdeas(now: number): Idea[] {
         "Fotos de lo que queda, sugerencias de tres platos, lista de la compra de lo que falta. Útil en semana, no otro recetario infinito.",
       status: "planned",
       priority: 2,
-      labels: ["Producto", "Personal"],
+      labels: ["label-producto", "label-personal"],
     },
     {
       number: 4,
@@ -38,7 +38,7 @@ export function seedIdeas(now: number): Idea[] {
         "Al final del día: capturar todo lo que quedó a medias, priorizar una y aparcar el resto. El resto del sistema solo existe para que esto no dé miedo.",
       status: "planned",
       priority: 2,
-      labels: ["Personal"],
+      labels: ["label-personal"],
     },
     {
       number: 5,
@@ -47,7 +47,7 @@ export function seedIdeas(now: number): Idea[] {
         "Abrir una idea es afilarla, no cambiar de sitio. Panel a un lado, lista intacta. En el teléfono, pantalla completa con una X que cierra, no que borra.",
       status: "in_progress",
       priority: 2,
-      labels: ["Diseño"],
+      labels: ["label-diseno"],
     },
     {
       number: 6,
@@ -56,7 +56,7 @@ export function seedIdeas(now: number): Idea[] {
         "Si no hay coincidencias, el siguiente paso es capturar esa frase como idea. Cmd+K y / hablan el mismo idioma.",
       status: "planned",
       priority: 3,
-      labels: ["Producto"],
+      labels: ["label-producto"],
     },
     {
       number: 7,
@@ -65,7 +65,7 @@ export function seedIdeas(now: number): Idea[] {
         "Bandeja → Por hacer → En progreso → Completada. Nada de backlog ni canceled. Completar es haberla convertido en algo, no haber cerrado un issue.",
       status: "inbox",
       priority: 2,
-      labels: ["Producto"],
+      labels: ["label-producto"],
     },
     {
       number: 8,
@@ -74,7 +74,7 @@ export function seedIdeas(now: number): Idea[] {
         "Arrastrar entre grupos cambia el estado. Alt+↑/↓ reordena. Prioridad sí; responsables ficticios, no.",
       status: "planned",
       priority: 3,
-      labels: ["Diseño"],
+      labels: ["label-diseno"],
     },
     {
       number: 9,
@@ -83,7 +83,7 @@ export function seedIdeas(now: number): Idea[] {
         "Sitios con enchufe, ruido bajo y café decente. Una nota por barrio, no un directorio.",
       status: "inbox",
       priority: 4,
-      labels: ["Personal"],
+      labels: ["label-personal"],
     },
     {
       number: 10,
@@ -92,7 +92,7 @@ export function seedIdeas(now: number): Idea[] {
         "La captura sin un sitio al que volver es un cajón. ¿Falta prioridad, un recordatorio, o solo una lista que se pueda recorrer en un minuto?",
       status: "inbox",
       priority: 3,
-      labels: ["Investigación"],
+      labels: ["label-investigacion"],
     },
     {
       number: 11,
@@ -100,7 +100,7 @@ export function seedIdeas(now: number): Idea[] {
       description: "Filas compactas, identificador estable, título truncado. Que quepan muchas sin parecer un tracker.",
       status: "done",
       priority: 3,
-      labels: ["Diseño"],
+      labels: ["label-diseno"],
     },
     {
       number: 12,
@@ -108,7 +108,7 @@ export function seedIdeas(now: number): Idea[] {
       description: "Una idea mal borrada tiene que volver. Tres segundos de arrepentimiento valen más que un diálogo de confirmación.",
       status: "done",
       priority: 2,
-      labels: ["Producto"],
+      labels: ["label-producto"],
     },
     {
       number: 13,
@@ -116,7 +116,7 @@ export function seedIdeas(now: number): Idea[] {
       description: "Frases que desbloquean. Nada de prompts genéricos: las que a mí me funcionan.",
       status: "inbox",
       priority: 4,
-      labels: ["Personal"],
+      labels: ["label-personal"],
     },
     {
       number: 14,
@@ -124,7 +124,7 @@ export function seedIdeas(now: number): Idea[] {
       description: "Cuando una analogía funciona en una reunión, guardarla. Título corto, contexto de una línea.",
       status: "planned",
       priority: 3,
-      labels: ["Investigación"],
+      labels: ["label-investigacion"],
     },
     {
       number: 15,
@@ -132,7 +132,7 @@ export function seedIdeas(now: number): Idea[] {
       description: "Papel, un bolígrafo que guste y una regla de una línea al día. Más ritual que producto.",
       status: "planned",
       priority: 0,
-      labels: ["Personal"],
+      labels: ["label-personal"],
     },
   ];
 

@@ -1,7 +1,7 @@
 import type { DragEvent } from "react";
 import { forwardRef } from "react";
 import { motion } from "motion/react";
-import { LABEL_COLORS, PRIORITIES, type Idea } from "../types";
+import { PRIORITIES, resolveLabels, type Idea, type Label } from "../types";
 import { formatTime } from "../format";
 import { PriorityIcon, StatusIcon } from "../icons";
 import { exitEase, fadeQuick, hidden, shown, uiSpring, useMotionPreference } from "../motion";
@@ -10,6 +10,7 @@ export const IdeaRow = forwardRef<
   HTMLDivElement,
   {
     idea: Idea;
+    labels: Label[];
     focused: boolean;
     selected: boolean;
     dragging: boolean;
@@ -27,6 +28,7 @@ export const IdeaRow = forwardRef<
 >(function IdeaRow(
   {
     idea,
+    labels,
     focused,
     selected,
     dragging,
@@ -45,6 +47,7 @@ export const IdeaRow = forwardRef<
 ) {
   const priority = PRIORITIES.find((p) => p.id === idea.priority);
   const reduced = useMotionPreference();
+  const assigned = resolveLabels(idea.labels, labels);
 
   const startDrag = (e: DragEvent<HTMLDivElement>) => {
     e.dataTransfer.setData("text/plain", idea.id);
@@ -113,10 +116,10 @@ export const IdeaRow = forwardRef<
           {idea.title}
         </span>
         <span className="labels">
-          {idea.labels.map((label) => (
-            <span className="label" key={label}>
-              <span className="dot" style={{ background: LABEL_COLORS[label] ?? "#8a8f98" }} />
-              {label}
+          {assigned.map((label) => (
+            <span className="label" key={label.id}>
+              <span className="dot" style={{ background: label.color }} />
+              {label.name}
             </span>
           ))}
         </span>

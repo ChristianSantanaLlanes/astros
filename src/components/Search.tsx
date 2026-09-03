@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import { searchIdeas } from "../db";
 import { PlusIcon, SearchIcon, StatusIcon } from "../icons";
 import { exitEase, fadeQuick, hidden, uiSpring, useMotionPreference } from "../motion";
-import { statusLabel, type Idea } from "../types";
+import { statusLabel, type Idea, type Label } from "../types";
 
 type ActionId = "new" | "search";
 
@@ -122,12 +122,13 @@ export const CommandPalette = forwardRef<
   HTMLDivElement,
   {
     ideas: Idea[];
+    labels: Label[];
     onClose: () => void;
     onCreate: () => void;
     onOpen: (id: string) => void;
     onSearch: (q: string) => void;
   }
->(function CommandPalette({ ideas, onClose, onCreate, onOpen, onSearch }, ref) {
+>(function CommandPalette({ ideas, labels, onClose, onCreate, onOpen, onSearch }, ref) {
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
   const needle = q.trim().toLowerCase();
@@ -146,7 +147,7 @@ export const CommandPalette = forwardRef<
     return all.filter((action) => action.id === "search" || action.title.toLowerCase().includes(needle));
   }, [needle, q]);
 
-  const hits = useMemo(() => searchIdeas(ideas, q).slice(0, 20), [ideas, q]);
+  const hits = useMemo(() => searchIdeas(ideas, q, labels).slice(0, 20), [ideas, labels, q]);
 
   const items = useMemo(
     () => [
@@ -242,14 +243,15 @@ export const SearchOverlay = forwardRef<
   {
     value: string;
     ideas: Idea[];
+    labels: Label[];
     onChange: (q: string) => void;
     onClose: () => void;
     onOpen: (id: string) => void;
   }
->(function SearchOverlay({ value, ideas, onChange, onClose, onOpen }, ref) {
+>(function SearchOverlay({ value, ideas, labels, onChange, onClose, onOpen }, ref) {
   const [q, setQ] = useState(value);
   const [active, setActive] = useState(0);
-  const hits = useMemo(() => searchIdeas(ideas, q), [ideas, q]);
+  const hits = useMemo(() => searchIdeas(ideas, q, labels), [ideas, labels, q]);
 
   useEffect(() => {
     setActive((i) => (hits.length === 0 ? 0 : Math.min(i, hits.length - 1)));

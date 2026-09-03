@@ -29,7 +29,7 @@ export function ProgressPage() {
         ganadas. Esta página se actualiza en cada ronda.
       </p>
       <p style={{ marginBottom: 24 }}>
-        <a href="/" style={{ color: "#828fff" }}>
+        <a href="/app" style={{ color: "#828fff" }}>
           Abrir Forge
         </a>
       </p>

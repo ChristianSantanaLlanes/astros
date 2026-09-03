@@ -5,15 +5,15 @@ import { NodeHandles } from "./NodeHandles";
 import { parseVideoUrl } from "./parseMediaUrl";
 
 export function VideoNode({ id, data, selected }: NodeProps<Node<CanvasNodeData, "video">>) {
-  const { assetUrls, onPatchNode } = useCanvasRuntime();
+  const { assetUrls, onPatchNode, expandedId } = useCanvasRuntime();
   const blobUrl = data.assetId ? assetUrls[data.assetId] : undefined;
   const parsed = !blobUrl && data.url ? parseVideoUrl(data.url) : null;
   const embed = parsed && parsed.kind !== "file" ? parsed : null;
   const fileSrc = blobUrl ?? (parsed?.kind === "file" ? parsed.src : undefined);
 
   return (
-    <div className={`canvas-node canvas-media canvas-video${selected ? " selected" : ""}`}>
-      <NodeHandles />
+    <div className={`canvas-node canvas-media canvas-video${selected ? " selected" : ""}${id === expandedId ? " dimmed" : ""}`}>
+      <NodeHandles nodeId={id} />
       {embed ? (
         <iframe
           className="canvas-media-frame nodrag nopan"

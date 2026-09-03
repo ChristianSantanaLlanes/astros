@@ -7,7 +7,17 @@ import { IdeaCanvas } from "./components/canvas/IdeaCanvas";
 import { Empty } from "./components/Empty";
 import { IdeaRow } from "./components/IdeaRow";
 import { StatusMenu } from "./components/StatusMenu";
-import { createIdea, deleteIdea, getCanvas, listComments, listIdeas, restoreIdea, searchIdeas, updateIdea } from "./db";
+import {
+  createIdea,
+  deleteIdea,
+  getCanvas,
+  listComments,
+  listIdeas,
+  listLabels,
+  restoreIdea,
+  searchIdeas,
+  updateIdea,
+} from "./db";
 import { isTypingTarget } from "./format";
 import {
   ChevronIcon,
@@ -36,7 +46,7 @@ import {
   useMotionPreference,
   viewEase,
 } from "./motion";
-import { STATUSES, statusLabel, type CanvasGraph, type Comment, type Idea, type Status } from "./types";
+import { STATUSES, statusLabel, type CanvasGraph, type Comment, type Idea, type Label, type Status } from "./types";
 
 type View = "active" | "all" | Status;
 type Overlay = "none" | "command" | "search";
@@ -79,6 +89,7 @@ function viewLabel(view: View): string {
 
 export function App() {
   const [ideas, setIdeas] = useState<Idea[]>([]);
+  const [labels, setLabels] = useState<Label[]>([]);
   const [ready, setReady] = useState(false);
   const [view, setView] = useState<View>("active");
   const [query, setQuery] = useState("");
@@ -99,8 +110,9 @@ export function App() {
   const bootStagger = useBootStagger(ready);
 
   const reload = useCallback(async () => {
-    const rows = await listIdeas();
+    const [rows, catalog] = await Promise.all([listIdeas(), listLabels()]);
     setIdeas(rows);
+    setLabels(catalog);
     setReady(true);
   }, []);
 
@@ -118,9 +130,9 @@ export function App() {
     let rows = ideas;
     if (view === "active") rows = ideas.filter((i) => i.status !== "done");
     else if (view !== "all") rows = ideas.filter((i) => i.status === view);
-    if (query) rows = searchIdeas(rows, query);
+    if (query) rows = searchIdeas(rows, query, labels);
     return rows;
-  }, [ideas, query, view]);
+  }, [ideas, labels, query, view]);
 
   const grouped = useMemo(() => {
     return STATUS_ORDER.map((status) => ({
@@ -243,6 +255,7 @@ export function App() {
 
       if (canvasOpen) {
         if (key === "Escape") {
+          if (document.querySelector(".canvas-node-modal")) return;
           e.preventDefault();
           setCanvasOpen(false);
         }
@@ -405,8 +418,10 @@ export function App() {
 
   const sidebarChrome = (
     <>
-      <motion.div
+      <motion.a
+        href="/"
         className="workspace"
+        aria-label="Volver a Forge"
         initial={bootHidden(boot, reduced, { y: 8 })}
         animate={shown(reduced)}
         transition={enterTransition(reduced, navDelay())}
@@ -415,8 +430,8 @@ export function App() {
         <div>
           <div className="workspace-name">Forge</div>
         </div>
-        <span className="workspace-meta">IDEA</span>
-      </motion.div>
+        <span className="workspace-meta">DASH</span>
+      </motion.a>
       <motion.button
         className="nav-search"
         onClick={() => setOverlay("command")}
@@ -486,7 +501,17 @@ export function App() {
         animate={shown(reduced)}
         transition={enterTransition(reduced, navDelay())}
       >
-        <Kbd>C</Kbd> captura · <Kbd>J</Kbd>/<Kbd>K</Kbd> mover · <Kbd>/</Kbd> buscar
+        <span className="sidebar-hint">
+          <Kbd>C</Kbd> captura
+        </span>
+        <span className="sidebar-hint">
+          <Kbd>J</Kbd>
+          <span className="sidebar-hint-sep">/</span>
+          <Kbd>K</Kbd> mover
+        </span>
+        <span className="sidebar-hint">
+          <Kbd>/</Kbd> buscar
+        </span>
       </motion.div>
     </>
   );
@@ -640,6 +665,7 @@ export function App() {
                                   setDragId(null);
                                   setDrop(null);
                                 }}
+                                labels={labels}
                               />
                             ))
                           : null}
@@ -662,11 +688,13 @@ export function App() {
               >
                 <Detail
                   idea={openIdea}
+                  labels={labels}
                   onBack={() => {
                     setCanvasOpen(false);
                     setOpenId(null);
                   }}
                   onChange={(next) => void patch(openIdea.id, next)}
+                  onRefresh={() => void reload()}
                   onDelete={() => void remove([openIdea.id])}
                   onOpenCanvas={() => setCanvasOpen(true)}
                 />
@@ -695,6 +723,7 @@ export function App() {
           <CommandPalette
             key="command"
             ideas={ideas}
+            labels={labels}
             onClose={() => setOverlay("none")}
             onCreate={() => {
               setOverlay("none");
@@ -715,6 +744,7 @@ export function App() {
             key="search"
             value={query}
             ideas={ideas}
+            labels={labels}
             onChange={setQuery}
             onClose={() => setOverlay("none")}
             onOpen={(id) => {

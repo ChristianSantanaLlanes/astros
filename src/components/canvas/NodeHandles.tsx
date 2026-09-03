@@ -1,5 +1,6 @@
 import { Handle, Position } from "@xyflow/react";
-import { GripIcon } from "../../icons";
+import { ExpandIcon, GripIcon } from "../../icons";
+import { useCanvasRuntime } from "./canvasContext";
 
 const SIDES = [
   { id: "t", position: Position.Top, label: "Conector superior" },
@@ -8,11 +9,26 @@ const SIDES = [
   { id: "l", position: Position.Left, label: "Conector izquierdo" },
 ] as const;
 
-export function NodeHandles() {
+export function NodeHandles({ nodeId }: { nodeId: string }) {
+  const { onExpandNode } = useCanvasRuntime();
   return (
     <>
-      <div className="canvas-drag" title="Arrastrar" role="button" aria-label="Arrastrar tarjeta">
-        <GripIcon size={20} />
+      <div className="canvas-node-chrome">
+        <div className="canvas-drag" title="Arrastrar" role="button" aria-label="Arrastrar tarjeta">
+          <GripIcon size={20} />
+        </div>
+        <button
+          className="canvas-expand nodrag nopan"
+          type="button"
+          aria-label="Maximizar"
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            onExpandNode(nodeId);
+          }}
+        >
+          <ExpandIcon size={14} />
+        </button>
       </div>
       {SIDES.map((side) => (
         <Handle
