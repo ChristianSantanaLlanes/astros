@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState, type KeyboardEvent, type ReactNode } from "react";
+import { forwardRef, useEffect, useMemo, useState, type KeyboardEvent, type ReactNode } from "react";
+import { motion } from "motion/react";
 import { searchIdeas } from "../db";
 import { PlusIcon, SearchIcon, StatusIcon } from "../icons";
+import { exitEase, fadeQuick, hidden, uiSpring, useMotionPreference } from "../motion";
 import { statusLabel, type Idea } from "../types";
 
 type ActionId = "new" | "search";
@@ -25,31 +27,39 @@ function moveActive(key: string, count: number, setActive: (fn: (i: number) => n
   return false;
 }
 
-function Palette({
-  labelledBy,
-  placeholder,
-  value,
-  onChange,
-  onKeyDown,
-  onClose,
-  children,
-}: {
-  labelledBy: string;
-  placeholder: string;
-  value: string;
-  onChange: (q: string) => void;
-  onKeyDown: (e: KeyboardEvent<HTMLInputElement>) => void;
-  onClose: () => void;
-  children: ReactNode;
-}) {
+const Palette = forwardRef<
+  HTMLDivElement,
+  {
+    labelledBy: string;
+    placeholder: string;
+    value: string;
+    onChange: (q: string) => void;
+    onKeyDown: (e: KeyboardEvent<HTMLInputElement>) => void;
+    onClose: () => void;
+    children: ReactNode;
+  }
+>(function Palette({ labelledBy, placeholder, value, onChange, onKeyDown, onClose, children }, ref) {
+  const reduced = useMotionPreference();
   return (
-    <div className="overlay" onMouseDown={onClose}>
-      <div
+    <motion.div
+      ref={ref}
+      className="overlay"
+      onMouseDown={onClose}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={reduced ? fadeQuick : exitEase}
+    >
+      <motion.div
         className="palette"
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelledBy}
         onMouseDown={(e) => e.stopPropagation()}
+        initial={hidden(reduced, { scale: 0.96 })}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={hidden(reduced, { scale: 0.98 })}
+        transition={reduced ? fadeQuick : uiSpring}
       >
         <input
           id={labelledBy}
@@ -65,10 +75,10 @@ function Palette({
         <div className="palette-list" id={`${labelledBy}-list`} role="listbox">
           {children}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
-}
+});
 
 function IdeaHit({
   idea,
@@ -103,35 +113,32 @@ function IdeaHit({
 function EmptyHits() {
   return (
     <div className="palette-item" data-empty="true" role="status">
-      No matching ideas
+      No se encontraron ideas
     </div>
   );
 }
 
-export function CommandPalette({
-  ideas,
-  onClose,
-  onCreate,
-  onOpen,
-  onSearch,
-}: {
-  ideas: Idea[];
-  onClose: () => void;
-  onCreate: () => void;
-  onOpen: (id: string) => void;
-  onSearch: (q: string) => void;
-}) {
+export const CommandPalette = forwardRef<
+  HTMLDivElement,
+  {
+    ideas: Idea[];
+    onClose: () => void;
+    onCreate: () => void;
+    onOpen: (id: string) => void;
+    onSearch: (q: string) => void;
+  }
+>(function CommandPalette({ ideas, onClose, onCreate, onOpen, onSearch }, ref) {
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
   const needle = q.trim().toLowerCase();
 
   const actions = useMemo<ActionHit[]>(() => {
     const all: ActionHit[] = [
-      { id: "new", kind: "action", title: "New idea", meta: "C" },
+      { id: "new", kind: "action", title: "Nueva idea", meta: "C" },
       {
         id: "search",
         kind: "action",
-        title: needle ? `Filter “${q.trim()}”` : "Filter current view",
+        title: needle ? `Filtrar “${q.trim()}”` : "Filtrar la vista actual",
         meta: "/",
       },
     ];
@@ -168,8 +175,9 @@ export function CommandPalette({
 
   return (
     <Palette
+      ref={ref}
       labelledBy="forge-command"
-      placeholder="Type a command or search…"
+      placeholder="Escribe un comando o busca…"
       value={q}
       onClose={onClose}
       onChange={(next) => {
@@ -191,7 +199,7 @@ export function CommandPalette({
         <EmptyHits />
       ) : (
         <>
-          {actions.length > 0 ? <div className="palette-section">Commands</div> : null}
+          {actions.length > 0 ? <div className="palette-section">Comandos</div> : null}
           {items.map((item, i) =>
             item.kind === "action" ? (
               <button
@@ -211,7 +219,7 @@ export function CommandPalette({
               </button>
             ) : null,
           )}
-          {hits.length > 0 ? <div className="palette-section">Issues</div> : null}
+          {hits.length > 0 ? <div className="palette-section">Ideas</div> : null}
           {items.map((item, i) =>
             item.kind === "idea" ? (
               <IdeaHit
@@ -227,21 +235,18 @@ export function CommandPalette({
       )}
     </Palette>
   );
-}
+});
 
-export function SearchOverlay({
-  value,
-  ideas,
-  onChange,
-  onClose,
-  onOpen,
-}: {
-  value: string;
-  ideas: Idea[];
-  onChange: (q: string) => void;
-  onClose: () => void;
-  onOpen: (id: string) => void;
-}) {
+export const SearchOverlay = forwardRef<
+  HTMLDivElement,
+  {
+    value: string;
+    ideas: Idea[];
+    onChange: (q: string) => void;
+    onClose: () => void;
+    onOpen: (id: string) => void;
+  }
+>(function SearchOverlay({ value, ideas, onChange, onClose, onOpen }, ref) {
   const [q, setQ] = useState(value);
   const [active, setActive] = useState(0);
   const hits = useMemo(() => searchIdeas(ideas, q), [ideas, q]);
@@ -252,8 +257,9 @@ export function SearchOverlay({
 
   return (
     <Palette
+      ref={ref}
       labelledBy="forge-search"
-      placeholder="Search ideas…"
+      placeholder="Buscar ideas…"
       value={q}
       onClose={onClose}
       onChange={(next) => {
@@ -289,4 +295,4 @@ export function SearchOverlay({
       )}
     </Palette>
   );
-}
+});

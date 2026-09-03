@@ -2,7 +2,7 @@ import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 import type { Comment, Idea, Priority, Status } from "./types";
 import { seedIdeas } from "./seed";
 
-const TEAM = "FOR";
+const TEAM = "IDEA";
 
 interface ForgeDB extends DBSchema {
   ideas: {
@@ -29,7 +29,7 @@ let dbPromise: Promise<IDBPDatabase<ForgeDB>> | null = null;
 
 function db(): Promise<IDBPDatabase<ForgeDB>> {
   if (!dbPromise) {
-    dbPromise = openDB<ForgeDB>("forge-ideas-5", 1, {
+    dbPromise = openDB<ForgeDB>("forge-ideas-6", 1, {
       upgrade(database) {
         const ideas = database.createObjectStore("ideas", { keyPath: "id" });
         ideas.createIndex("by_status_order", ["status", "order"]);
@@ -61,29 +61,14 @@ export async function ensureSeed(): Promise<void> {
   await tx.objectStore("comments").put({
     id: "seed-comment-1",
     ideaId: "seed-1",
-    body: "Right now we show a spinner forever, which makes it look like the car disappeared…",
+    body: "Si hay que buscar el composer, la idea ya se fue. El campo tiene que estar siempre ahí.",
     createdAt: now - 4 * 60_000,
-    authorName: "Karri",
-    authorInitials: "KA",
-    authorColor: "#5e6ad2",
   });
   await tx.objectStore("comments").put({
     id: "seed-comment-2",
     ideaId: "seed-1",
-    body: "Keep capture as a list row — same cells as every issue. Cmd+Enter should create and leave the composer open.",
+    body: "Enter crea y deja el cursor listo. Sin identificador ni prioridad en la captura: eso se afila después.",
     createdAt: now - 2 * 60_000,
-    authorName: "Lena",
-    authorInitials: "LE",
-    authorColor: "#eb5757",
-  });
-  await tx.objectStore("comments").put({
-    id: "seed-comment-3",
-    ideaId: "seed-1",
-    body: "Pushed a draft PR so the thread and #54017 sit next to the comments.",
-    createdAt: now - 70_000,
-    authorName: "Andreas",
-    authorInitials: "AN",
-    authorColor: "#27a644",
   });
   await tx.objectStore("meta").put({
     key: "counters",
@@ -122,7 +107,7 @@ export async function createIdea(input: {
   const number = meta.nextNumber;
   const now = Date.now();
   const sameStatus = (await database.getAllFromIndex("ideas", "by_status_order")).filter(
-    (i) => i.status === (input.status ?? "todo"),
+    (i) => i.status === (input.status ?? "inbox"),
   );
   const idea: Idea = {
     id: uid(),
@@ -130,7 +115,7 @@ export async function createIdea(input: {
     identifier: `${TEAM}-${number}`,
     title,
     description: input.description?.trim() ?? "",
-    status: input.status ?? "todo",
+    status: input.status ?? "inbox",
     priority: input.priority ?? 0,
     labels: input.labels ?? [],
     order: sameStatus.length === 0 ? 0 : Math.min(...sameStatus.map((i) => i.order)) - 1,
@@ -146,7 +131,7 @@ export async function createIdea(input: {
 
 export async function updateIdea(
   id: string,
-  patch: Partial<Pick<Idea, "title" | "description" | "status" | "priority" | "labels" | "order">>,
+  patch: Partial<Pick<Idea, "title" | "description" | "status" | "priority" | "labels" | "assignee" | "order">>,
 ): Promise<Idea> {
   const database = await db();
   const current = await database.get("ideas", id);
@@ -173,6 +158,16 @@ export async function deleteIdea(id: string): Promise<void> {
   const comments = await tx.objectStore("comments").index("by_idea").getAll(id);
   for (const comment of comments) {
     await tx.objectStore("comments").delete(comment.id);
+  }
+  await tx.done;
+}
+
+export async function restoreIdea(idea: Idea, comments: Comment[]): Promise<void> {
+  const database = await db();
+  const tx = database.transaction(["ideas", "comments"], "readwrite");
+  await tx.objectStore("ideas").put(idea);
+  for (const comment of comments) {
+    await tx.objectStore("comments").put(comment);
   }
   await tx.done;
 }

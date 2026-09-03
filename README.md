@@ -1,6 +1,6 @@
 # Forge
 
-Gestor de ideas con el listón de Linear Issues: captura, ordena, prioriza y mueve ideas de punta a punta.
+Gestor de ideas: captura, ordena, prioriza y mueve ideas de punta a punta.
 
 ## Desarrollo
 
@@ -18,13 +18,13 @@ Persistencia local en IndexedDB (`forge-ideas`). No es un mock: crear, editar, b
 
 | Tecla | Acción |
 | --- | --- |
-| `C` | Nueva idea |
+| `C` | Enfocar captura |
 | `⌘K` | Paleta |
 | `/` | Buscar |
 | `J` / `K` | Siguiente / anterior |
 | `Enter` | Abrir |
 | `Esc` | Cerrar |
 | `X` | Seleccionar |
-| `Alt+1–5` | Cambiar estado |
+| `Alt+1–4` | Cambiar estado |
 | `Alt+↑/↓` | Reordenar |
-| `⌘⌫` | Borrar |
+| `⌘⌫` | Borrar (con deshacer) |

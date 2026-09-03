@@ -187,7 +187,49 @@ button {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
   background: var(--bg);
+  position: relative;
+}
+
+.stage {
+  display: grid;
+  grid-template-columns: 1fr;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  transition: grid-template-columns 220ms var(--ease);
+}
+
+.stage.has-detail {
+  grid-template-columns: minmax(0, 1fr) minmax(420px, 560px);
+}
+
+.quick-capture {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-4);
+  flex-shrink: 0;
+}
+
+.quick-capture-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.quick-capture-input::placeholder {
+  color: var(--text-4);
 }
 
 .topbar {
@@ -297,7 +339,9 @@ button {
 .list {
   flex: 1;
   min-height: 0;
+  min-width: 0;
   overflow: auto;
+  position: relative;
 }
 
 .group {
@@ -345,8 +389,8 @@ button {
 
 .row {
   display: grid;
-  grid-template-columns: 16px 58px 16px minmax(0, 1fr) minmax(140px, auto) 22px 48px;
-  grid-template-areas: "prio ident status title labels owner time";
+  grid-template-columns: 16px 72px 16px minmax(0, 1fr) minmax(140px, auto) 48px;
+  grid-template-areas: "prio ident status title labels time";
   align-items: center;
   height: 36px;
   min-height: 36px;
@@ -390,10 +434,6 @@ button {
 
 .row > .prio-slot {
   grid-area: prio;
-}
-
-.row > .owner {
-  grid-area: owner;
 }
 
 .row:hover {
@@ -586,15 +626,6 @@ button {
   align-items: center;
 }
 
-@keyframes overlay-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
 @keyframes composer-in {
   from {
     opacity: 0;
@@ -692,6 +723,7 @@ button {
 .activity {
   padding: 4px 16px 28px 28px;
   margin-top: 0;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .activity-label {
@@ -882,7 +914,6 @@ button {
   justify-content: center;
   padding: min(16vh, 108px) 16px 24px;
   background: rgba(0, 0, 0, 0.4);
-  animation: overlay-in 180ms ease both;
 }
 
 .modal,
@@ -996,6 +1027,9 @@ button {
   .composer {
     animation: none;
   }
+  .stage {
+    transition: none;
+  }
 }
 
 .palette {
@@ -1087,18 +1121,20 @@ button {
 }
 
 .detail-shell {
-  display: grid;
-  grid-template-columns: 1fr 280px;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
-  flex: 1;
   overflow: hidden;
+  border-left: 1px solid var(--border-subtle);
+  background: var(--bg);
 }
 
 .detail {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  border-right: 1px solid var(--border-subtle);
+  min-height: 0;
+  flex: 1;
   overflow: auto;
 }
 
@@ -1153,11 +1189,14 @@ button {
 }
 
 .props {
-  padding: 12px 14px;
+  padding: 12px 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 2px;
   overflow: auto;
+  max-height: 48%;
+  border-top: 1px solid var(--border-subtle);
+  flex-shrink: 0;
 }
 
 .prop {
@@ -1287,7 +1326,9 @@ button {
   position: fixed;
   bottom: 16px;
   left: 50%;
-  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
   background: var(--level3);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -1296,6 +1337,26 @@ button {
   color: var(--text-2);
   box-shadow: var(--shadow-float);
   z-index: 60;
+}
+
+.toast button {
+  color: var(--accent-hover);
+  font-size: 13px;
+  font-variation-settings: "wght" 510;
+}
+
+.danger-button {
+  margin-top: 14px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 6px;
+  color: #f87171;
+  font-size: 12px;
+  text-align: left;
+}
+
+.danger-button:hover {
+  background: rgba(235, 87, 87, 0.12);
 }
 
 .progress-page {
@@ -1373,14 +1434,21 @@ button {
   line-height: 1.5;
 }
 
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 29;
+  background: rgba(0, 0, 0, 0.45);
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
 @media (max-width: 860px) {
   .app {
     grid-template-columns: 1fr;
   }
   .sidebar {
-    display: none;
-  }
-  .sidebar.open {
     display: flex;
     position: fixed;
     inset: 0 auto 0 0;
@@ -1389,8 +1457,8 @@ button {
     box-shadow: var(--shadow-float);
   }
   .row {
-    grid-template-columns: 16px 52px 16px minmax(0, 1fr) 20px;
-    grid-template-areas: "prio ident status title owner";
+    grid-template-columns: 16px 64px 16px minmax(0, 1fr);
+    grid-template-areas: "prio ident status title";
     height: auto;
     min-height: 44px;
     max-height: none;
@@ -1400,8 +1468,7 @@ button {
   }
   .row > .prio-slot,
   .row > .ident:not(.date),
-  .row > .status-btn,
-  .row > .owner {
+  .row > .status-btn {
     margin-top: 3px;
   }
   .title {
@@ -1451,16 +1518,24 @@ button {
     height: 16px;
     font-size: 7px;
   }
-  .detail-shell {
+  .stage.has-detail {
     grid-template-columns: 1fr;
+  }
+  .stage.has-detail .list {
+    display: none;
+  }
+  .detail-shell {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    border-left: 0;
     overflow: auto;
   }
   .detail {
-    border-right: 0;
     overflow: visible;
   }
   .props {
-    border-top: 1px solid var(--border-subtle);
+    max-height: none;
     overflow: visible;
   }
   .piece {

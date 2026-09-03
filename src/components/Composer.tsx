@@ -1,112 +1,60 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { formatTime } from "../format";
-import { PriorityIcon, StatusIcon } from "../icons";
-import { PRIORITIES, STATUSES, statusLabel, type Priority, type Status } from "../types";
+import { useRef, useState, type ReactNode, type RefObject } from "react";
+import { motion } from "motion/react";
+import { PlusIcon } from "../icons";
+import { bootHidden, enterTransition, shown, useMotionPreference } from "../motion";
 
 export function Composer({
-  nextIdentifier,
-  initialStatus = "todo",
-  onClose,
+  inputRef,
   onCreate,
 }: {
-  nextIdentifier: string;
-  initialStatus?: Status;
-  onClose: () => void;
-  onCreate: (title: string, description: string, status: Status, priority: Priority) => Promise<void>;
+  inputRef: RefObject<HTMLInputElement | null>;
+  onCreate: (title: string) => Promise<void>;
 }) {
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [status, setStatus] = useState<Status>(initialStatus);
-  const [priority, setPriority] = useState<Priority>(3);
-  const [busy, setBusy] = useState(false);
-  const [openBody, setOpenBody] = useState(false);
-  const [now] = useState(() => Date.now());
-  const titleRef = useRef<HTMLInputElement>(null);
+  const busy = useRef(false);
 
-  useEffect(() => {
-    titleRef.current?.focus();
-  }, []);
-
-  const submit = () => {
-    if (!title.trim() || busy) return;
-    setBusy(true);
-    void onCreate(title, description, status, priority).finally(() => setBusy(false));
+  const submit = async () => {
+    const next = title.trim();
+    if (!next || busy.current) return;
+    busy.current = true;
+    setTitle("");
+    try {
+      await onCreate(next);
+    } finally {
+      busy.current = false;
+      inputRef.current?.focus();
+    }
   };
-
-  const cycleStatus = () => {
-    setStatus((s) => STATUSES[(STATUSES.findIndex((x) => x.id === s) + 1) % STATUSES.length]!.id);
-  };
-
-  const cyclePriority = () => {
-    setPriority(((priority + 1) % 5) as Priority);
-  };
-
-  const priorityName = PRIORITIES.find((p) => p.id === priority)?.label ?? "No priority";
 
   return (
     <form
-      className="inline-capture"
+      className="quick-capture"
       onSubmit={(e) => {
         e.preventDefault();
-        submit();
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") {
-          e.preventDefault();
-          onClose();
-        }
-        if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-          e.preventDefault();
-          submit();
-        }
+        void submit();
       }}
     >
-      <div className="row inline-capture-row">
-        <span className="prio-slot">
-          <button type="button" className="prio-btn" aria-label={`Priority ${priorityName}`} onClick={cyclePriority}>
-            <PriorityIcon priority={priority} size={14} />
-          </button>
-        </span>
-        <span className="ident">{nextIdentifier}</span>
-        <button type="button" className="status-btn" aria-label={`Status ${statusLabel(status)}`} onClick={cycleStatus}>
-          <StatusIcon status={status} size={14} />
-        </button>
-        <input
-          ref={titleRef}
-          className="title inline-capture-title"
-          placeholder="Issue title"
-          value={title}
-          size={1}
-          autoComplete="off"
-          spellCheck
-          onChange={(e) => setTitle(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.metaKey && !e.ctrlKey && !e.nativeEvent.isComposing) {
-              e.preventDefault();
-              if (title.trim()) submit();
-              else setOpenBody(true);
-            }
-            if (e.key === "Tab" && !e.shiftKey) {
-              e.preventDefault();
-              setOpenBody(true);
-            }
-          }}
-        />
-        <span className="labels" />
-        <span className="owner" title="You" style={{ background: "#3a3f4b" }}>
-          Y
-        </span>
-        <span className="ident date">{formatTime(now)}</span>
-      </div>
-      {openBody ? (
-        <textarea
-          className="inline-capture-body"
-          placeholder="Add description…"
-          value={description}
-          autoFocus
-          onChange={(e) => setDescription(e.target.value)}
-        />
-      ) : null}
+      <PlusIcon size={14} />
+      <input
+        ref={inputRef}
+        id="quick-capture"
+        className="quick-capture-input"
+        placeholder="Captura una idea…"
+        value={title}
+        maxLength={140}
+        autoComplete="off"
+        spellCheck
+        aria-label="Captura rápida"
+        onChange={(e) => setTitle(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            e.preventDefault();
+            setTitle("");
+            e.currentTarget.blur();
+          }
+        }}
+      />
+      <kbd className="kbd">C</kbd>
     </form>
   );
 }
@@ -117,18 +65,30 @@ export function NavItem({
   count,
   active,
   onClick,
+  enterDelay = 0,
+  animateEnter = false,
 }: {
   icon: ReactNode;
   label: string;
   count: number;
   active: boolean;
   onClick: () => void;
+  enterDelay?: number;
+  animateEnter?: boolean;
 }) {
+  const reduced = useMotionPreference();
   return (
-    <button className={`nav-item${active ? " active" : ""}`} type="button" onClick={onClick}>
+    <motion.button
+      className={`nav-item${active ? " active" : ""}`}
+      type="button"
+      onClick={onClick}
+      initial={bootHidden(animateEnter, reduced, { y: 8 })}
+      animate={shown(reduced)}
+      transition={enterTransition(reduced, enterDelay)}
+    >
       {icon}
       {label}
       <span className="count">{count}</span>
-    </button>
+    </motion.button>
   );
 }

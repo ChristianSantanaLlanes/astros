@@ -1,26 +1,26 @@
 import { forwardRef, useEffect, useMemo, useRef } from "react";
 import { motion } from "motion/react";
-import { CheckIcon, Kbd, StatusIcon } from "../icons";
+import { CheckIcon, Kbd, PriorityIcon } from "../icons";
 import { menuPresence, mergeRefs, useMotionPreference } from "../motion";
-import { STATUSES, type Status } from "../types";
+import { PRIORITIES, type Priority } from "../types";
 
 const MENU_W = 220;
 const ITEM_H = 32;
 const MENU_PAD = 8;
 
-export const StatusMenu = forwardRef<
+export const PriorityMenu = forwardRef<
   HTMLDivElement,
   {
     x: number;
     y: number;
-    current: Status;
+    current: Priority;
     onClose: () => void;
-    onPick: (status: Status) => void;
+    onPick: (priority: Priority) => void;
   }
->(function StatusMenu({ x, y, current, onClose, onPick }, forwarded) {
+>(function PriorityMenu({ x, y, current, onClose, onPick }, forwarded) {
   const root = useRef<HTMLDivElement>(null);
   const pos = useMemo(() => {
-    const h = STATUSES.length * ITEM_H + MENU_PAD;
+    const h = PRIORITIES.length * ITEM_H + MENU_PAD;
     return {
       left: Math.max(8, Math.min(x, window.innerWidth - MENU_W - 8)),
       top: Math.max(8, Math.min(y, window.innerHeight - h - 8)),
@@ -42,7 +42,7 @@ export const StatusMenu = forwardRef<
         return;
       }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const byNum = STATUSES.find((s) => s.shortcut === e.key);
+      const byNum = PRIORITIES.find((p) => p.shortcut === e.key);
       if (byNum) {
         e.preventDefault();
         e.stopPropagation();
@@ -63,8 +63,8 @@ export const StatusMenu = forwardRef<
       if (e.key === "Enter" && i >= 0) {
         e.preventDefault();
         e.stopPropagation();
-        const id = STATUSES[i]?.id;
-        if (id) onPick(id);
+        const id = PRIORITIES[i]?.id;
+        if (id !== undefined) onPick(id);
       }
     };
     window.addEventListener("mousedown", close);
@@ -83,7 +83,7 @@ export const StatusMenu = forwardRef<
       ref={mergeRefs(root, forwarded)}
       className="menu"
       role="menu"
-      aria-label="Cambiar estado"
+      aria-label="Cambiar prioridad"
       style={{ left: pos.left, top: pos.top }}
       onMouseDown={(e) => e.stopPropagation()}
       initial={presence.initial}
@@ -91,23 +91,23 @@ export const StatusMenu = forwardRef<
       exit={presence.exit}
       transition={presence.transition}
     >
-      {STATUSES.map((s) => (
+      {PRIORITIES.map((p) => (
         <button
-          key={s.id}
+          key={p.id}
           role="menuitemradio"
-          aria-checked={s.id === current}
-          className={`menu-item${s.id === current ? " active" : ""}`}
+          aria-checked={p.id === current}
+          className={`menu-item${p.id === current ? " active" : ""}`}
           type="button"
-          onClick={() => onPick(s.id)}
+          onClick={() => onPick(p.id)}
           onMouseEnter={(e) => e.currentTarget.focus()}
         >
           <span className="menu-tick" aria-hidden>
-            {s.id === current ? <CheckIcon /> : null}
+            {p.id === current ? <CheckIcon /> : null}
           </span>
-          <StatusIcon status={s.id} outline={s.id === "done" && s.id !== current} />
-          {s.label}
+          <PriorityIcon priority={p.id} />
+          {p.label}
           <span className="spacer" />
-          <Kbd>{s.shortcut}</Kbd>
+          <Kbd>{p.shortcut}</Kbd>
         </button>
       ))}
     </motion.div>

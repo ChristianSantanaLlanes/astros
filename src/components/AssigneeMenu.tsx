@@ -1,26 +1,27 @@
-import { forwardRef, useEffect, useMemo, useRef } from "react";
-import { motion } from "motion/react";
-import { CheckIcon, Kbd, StatusIcon } from "../icons";
-import { menuPresence, mergeRefs, useMotionPreference } from "../motion";
-import { STATUSES, type Status } from "../types";
+import { useEffect, useMemo, useRef } from "react";
+import { CheckIcon } from "../icons";
+import { OWNERS } from "../owners";
 
 const MENU_W = 220;
 const ITEM_H = 32;
 const MENU_PAD = 8;
 
-export const StatusMenu = forwardRef<
-  HTMLDivElement,
-  {
-    x: number;
-    y: number;
-    current: Status;
-    onClose: () => void;
-    onPick: (status: Status) => void;
-  }
->(function StatusMenu({ x, y, current, onClose, onPick }, forwarded) {
+export function AssigneeMenu({
+  x,
+  y,
+  current,
+  onClose,
+  onPick,
+}: {
+  x: number;
+  y: number;
+  current: string;
+  onClose: () => void;
+  onPick: (name: string) => void;
+}) {
   const root = useRef<HTMLDivElement>(null);
   const pos = useMemo(() => {
-    const h = STATUSES.length * ITEM_H + MENU_PAD;
+    const h = OWNERS.length * ITEM_H + MENU_PAD;
     return {
       left: Math.max(8, Math.min(x, window.innerWidth - MENU_W - 8)),
       top: Math.max(8, Math.min(y, window.innerHeight - h - 8)),
@@ -42,13 +43,6 @@ export const StatusMenu = forwardRef<
         return;
       }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const byNum = STATUSES.find((s) => s.shortcut === e.key);
-      if (byNum) {
-        e.preventDefault();
-        e.stopPropagation();
-        onPick(byNum.id);
-        return;
-      }
       const buttons = [...(root.current?.querySelectorAll<HTMLButtonElement>(".menu-item") ?? [])];
       const i = buttons.findIndex((b) => b === document.activeElement);
       if (e.key === "ArrowDown" || e.key === "ArrowUp") {
@@ -63,8 +57,8 @@ export const StatusMenu = forwardRef<
       if (e.key === "Enter" && i >= 0) {
         e.preventDefault();
         e.stopPropagation();
-        const id = STATUSES[i]?.id;
-        if (id) onPick(id);
+        const name = OWNERS[i]?.name;
+        if (name) onPick(name);
       }
     };
     window.addEventListener("mousedown", close);
@@ -75,41 +69,34 @@ export const StatusMenu = forwardRef<
     };
   }, [onClose, onPick]);
 
-  const reduced = useMotionPreference();
-  const presence = menuPresence(reduced);
-
   return (
-    <motion.div
-      ref={mergeRefs(root, forwarded)}
+    <div
+      ref={root}
       className="menu"
       role="menu"
-      aria-label="Cambiar estado"
+      aria-label="Change assignee"
       style={{ left: pos.left, top: pos.top }}
       onMouseDown={(e) => e.stopPropagation()}
-      initial={presence.initial}
-      animate={presence.animate}
-      exit={presence.exit}
-      transition={presence.transition}
     >
-      {STATUSES.map((s) => (
+      {OWNERS.map((owner) => (
         <button
-          key={s.id}
+          key={owner.name}
           role="menuitemradio"
-          aria-checked={s.id === current}
-          className={`menu-item${s.id === current ? " active" : ""}`}
+          aria-checked={owner.name === current}
+          className={`menu-item${owner.name === current ? " active" : ""}`}
           type="button"
-          onClick={() => onPick(s.id)}
+          onClick={() => onPick(owner.name)}
           onMouseEnter={(e) => e.currentTarget.focus()}
         >
           <span className="menu-tick" aria-hidden>
-            {s.id === current ? <CheckIcon /> : null}
+            {owner.name === current ? <CheckIcon /> : null}
           </span>
-          <StatusIcon status={s.id} outline={s.id === "done" && s.id !== current} />
-          {s.label}
-          <span className="spacer" />
-          <Kbd>{s.shortcut}</Kbd>
+          <span className="owner" style={{ background: owner.color }}>
+            {owner.initials}
+          </span>
+          {owner.name}
         </button>
       ))}
-    </motion.div>
+    </div>
   );
-});
+}

@@ -9,3 +9,10 @@ export const OWNERS: { name: string; initials: string; color: string }[] = [
 export function ownerFor(number: number): (typeof OWNERS)[number] {
   return OWNERS[number % OWNERS.length]!;
 }
+
+export function ownerOf(idea: { number: number; assignee?: string }): (typeof OWNERS)[number] {
+  if (idea.assignee) {
+    return OWNERS.find((owner) => owner.name === idea.assignee) ?? ownerFor(idea.number);
+  }
+  return ownerFor(idea.number);
+}

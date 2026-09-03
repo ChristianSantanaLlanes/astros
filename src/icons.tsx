@@ -14,7 +14,7 @@ export function StatusIcon({
   outline?: boolean;
 }) {
   const s = size;
-  if (status === "backlog") {
+  if (status === "inbox") {
     return (
       <svg width={s} height={s} viewBox="0 0 14 14" fill="none" aria-hidden style={iconStyle}>
         <circle
@@ -29,7 +29,7 @@ export function StatusIcon({
       </svg>
     );
   }
-  if (status === "todo") {
+  if (status === "planned") {
     return (
       <svg width={s} height={s} viewBox="0 0 14 14" fill="none" aria-hidden style={iconStyle}>
         <circle cx="7" cy="7" r="6" stroke="#c9ced6" strokeWidth="1.5" />
@@ -70,12 +70,7 @@ export function StatusIcon({
       </svg>
     );
   }
-  return (
-    <svg width={s} height={s} viewBox="0 0 14 14" fill="none" aria-hidden style={iconStyle}>
-      <circle cx="7" cy="7" r="6" stroke="#62666d" strokeWidth="1.5" />
-      <path d="M5 5l4 4M9 5l-4 4" stroke="#62666d" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
+  return null;
 }
 
 export function PriorityIcon({ priority, size = 14 }: { priority: Priority; size?: number }) {
