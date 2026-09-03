@@ -498,7 +498,17 @@ export function App() {
         animate={shown(reduced)}
         transition={enterTransition(reduced, navDelay())}
       >
-        <Kbd>C</Kbd> captura · <Kbd>J</Kbd>/<Kbd>K</Kbd> mover · <Kbd>/</Kbd> buscar
+        <span className="sidebar-hint">
+          <Kbd>C</Kbd> captura
+        </span>
+        <span className="sidebar-hint">
+          <Kbd>J</Kbd>
+          <span className="sidebar-hint-sep">/</span>
+          <Kbd>K</Kbd> mover
+        </span>
+        <span className="sidebar-hint">
+          <Kbd>/</Kbd> buscar
+        </span>
       </motion.div>
     </>
   );

@@ -177,10 +177,23 @@ button {
   margin-top: auto;
   padding: 8px 6px 4px;
   color: var(--text-4);
-  font-size: 12px;
+  font-size: 11px;
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 6px 10px;
   align-items: center;
+}
+
+.sidebar-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.sidebar-hint-sep {
+  color: var(--text-4);
+  margin: 0 -1px;
 }
 
 .main {
