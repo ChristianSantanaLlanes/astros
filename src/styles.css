@@ -897,8 +897,10 @@ button {
 
 .labels-v {
   height: auto;
-  padding: 6px 0;
+  min-height: 28px;
+  padding: 6px 8px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .muted {
@@ -1320,6 +1322,107 @@ button {
 .menu-item.active:hover,
 .menu-item.active:focus-visible {
   background: rgba(94, 106, 210, 0.26);
+}
+
+.label-menu-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  border-radius: 6px;
+}
+
+.label-menu-row:hover,
+.label-menu-row:focus-within {
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.label-menu-row.active {
+  background: rgba(94, 106, 210, 0.18);
+}
+
+.label-menu-pick,
+.label-menu-pick:hover,
+.label-menu-pick:focus-visible,
+.label-menu-pick.active,
+.label-menu-pick.active:hover,
+.label-menu-pick.active:focus-visible {
+  background: transparent;
+}
+
+.label-menu-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.label-menu-actions {
+  display: flex;
+  align-items: center;
+  padding-right: 2px;
+  opacity: 0;
+}
+
+.label-menu-row:hover .label-menu-actions,
+.label-menu-row:focus-within .label-menu-actions {
+  opacity: 1;
+}
+
+.label-menu-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--text-3);
+}
+
+.label-menu-icon.danger:hover {
+  color: #fca5a5;
+}
+
+.label-menu-palette {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 8px 8px 26px;
+}
+
+.label-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.label-swatch.selected {
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--text-3);
+}
+
+.label-menu-create {
+  display: flex;
+  padding: 4px 8px 6px;
+}
+
+.label-menu-input {
+  width: 100%;
+  min-width: 0;
+  height: 26px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  outline: none;
+}
+
+.label-menu-edit {
+  height: 32px;
+  padding: 0 8px 0 26px;
+}
+
+.label-menu-error {
+  margin: 0 10px 6px;
+  font-size: 11px;
+  color: #f87171;
 }
 
 .toast {

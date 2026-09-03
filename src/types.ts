@@ -1,6 +1,12 @@
 export type Status = "inbox" | "planned" | "in_progress" | "done";
 export type Priority = 0 | 1 | 2 | 3 | 4;
 
+export type Label = {
+  id: string;
+  name: string;
+  color: string;
+};
+
 export type Idea = {
   id: string;
   number: number;
@@ -80,12 +86,40 @@ export const PRIORITIES: { id: Priority; label: string; shortcut: string }[] = [
   { id: 4, label: "Baja", shortcut: "4" },
 ];
 
-export const LABEL_COLORS: Record<string, string> = {
-  Producto: "#5e6ad2",
-  Personal: "#27a644",
-  Investigación: "#bb87fc",
-  Diseño: "#eb5757",
-};
+export const LABEL_PALETTE = [
+  "#5e6ad2",
+  "#27a644",
+  "#bb87fc",
+  "#eb5757",
+  "#f2c94c",
+  "#26b5ce",
+  "#f2994a",
+] as const;
+
+export const SEED_LABELS: Label[] = [
+  { id: "label-producto", name: "Producto", color: "#5e6ad2" },
+  { id: "label-personal", name: "Personal", color: "#27a644" },
+  { id: "label-investigacion", name: "Investigación", color: "#bb87fc" },
+  { id: "label-diseno", name: "Diseño", color: "#eb5757" },
+];
+
+export function normalizeLabelName(name: string): string {
+  return name.trim().replace(/\s+/g, " ");
+}
+
+export function nextLabelColor(existing: Label[]): string {
+  const used = new Set(existing.map((label) => label.color));
+  const unused = LABEL_PALETTE.find((color) => !used.has(color));
+  return unused ?? LABEL_PALETTE[existing.length % LABEL_PALETTE.length]!;
+}
+
+export function resolveLabels(ids: string[], catalog: Label[]): Label[] {
+  const byId = new Map(catalog.map((label) => [label.id, label]));
+  return ids.flatMap((id) => {
+    const label = byId.get(id);
+    return label ? [label] : [];
+  });
+}
 
 export function statusLabel(status: Status): string {
   return STATUSES.find((s) => s.id === status)?.label ?? status;

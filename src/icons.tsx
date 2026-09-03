@@ -267,3 +267,24 @@ export function FilterIcon({ size = 16, className }: IconProps) {
     </svg>
   );
 }
+
+export function PencilIcon({ size = 14, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 14 14" fill="none" className={className} aria-hidden>
+      <path
+        d="M8.4 3.1 10.9 5.6M2.5 11.5l1.1-4.1L9.2 1.8a1.2 1.2 0 0 1 1.7 0l1.3 1.3a1.2 1.2 0 0 1 0 1.7L6.6 10.4l-4.1 1.1Z"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function TrashIcon({ size = 14, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 14 14" fill="none" className={className} aria-hidden>
+      <path d="M3 4h8M5.2 4V2.8h3.6V4M4.2 4l.4 7.2h4.8L9.8 4" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+    </svg>
+  );
+}

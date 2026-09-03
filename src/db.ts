@@ -1,5 +1,6 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
-import type { CanvasAsset, CanvasEdge, CanvasGraph, CanvasNode, Comment, Idea, Priority, Status } from "./types";
+import type { CanvasAsset, CanvasEdge, CanvasGraph, CanvasNode, Comment, Idea, Label, Priority, Status } from "./types";
+import { LABEL_PALETTE, SEED_LABELS, nextLabelColor, normalizeLabelName } from "./types";
 import { seedIdeas } from "./seed";
 
 const TEAM = "IDEA";
@@ -39,14 +40,18 @@ interface ForgeDB extends DBSchema {
     value: CanvasAsset;
     indexes: { by_idea: string };
   };
+  labels: {
+    key: string;
+    value: Label;
+  };
 }
 
 let dbPromise: Promise<IDBPDatabase<ForgeDB>> | null = null;
 
 function db(): Promise<IDBPDatabase<ForgeDB>> {
   if (!dbPromise) {
-    dbPromise = openDB<ForgeDB>("forge-ideas-6", 2, {
-      upgrade(database, oldVersion) {
+    dbPromise = openDB<ForgeDB>("forge-ideas-6", 3, {
+      async upgrade(database, oldVersion, _newVersion, transaction) {
         if (oldVersion < 1) {
           const ideas = database.createObjectStore("ideas", { keyPath: "id" });
           ideas.createIndex("by_status_order", ["status", "order"]);
@@ -64,6 +69,10 @@ function db(): Promise<IDBPDatabase<ForgeDB>> {
           const assets = database.createObjectStore("canvasAssets", { keyPath: "id" });
           assets.createIndex("by_idea", "ideaId");
         }
+        if (oldVersion < 3) {
+          database.createObjectStore("labels", { keyPath: "id" });
+          await migrateIdeaLabels(transaction.objectStore("labels"), transaction.objectStore("ideas"));
+        }
       },
     });
   }
@@ -74,8 +83,51 @@ function uid(): string {
   return crypto.randomUUID();
 }
 
+async function migrateIdeaLabels(
+  labelStore: { put: (value: Label) => Promise<string> },
+  ideaStore: { put: (value: Idea) => Promise<string>; getAll: () => Promise<Idea[]> },
+): Promise<void> {
+  const byName = new Map<string, Label>();
+  for (const seed of SEED_LABELS) {
+    await labelStore.put(seed);
+    byName.set(seed.name.toLowerCase(), seed);
+  }
+  const ideas = await ideaStore.getAll();
+  let extra = 0;
+  for (const idea of ideas) {
+    const nextIds: string[] = [];
+    for (const raw of idea.labels) {
+      if (SEED_LABELS.some((seed) => seed.id === raw)) {
+        nextIds.push(raw);
+        continue;
+      }
+      const key = raw.trim().toLowerCase();
+      if (!key) continue;
+      let label = byName.get(key);
+      if (!label) {
+        label = {
+          id: uid(),
+          name: raw.trim(),
+          color: LABEL_PALETTE[(SEED_LABELS.length + extra) % LABEL_PALETTE.length]!,
+        };
+        extra += 1;
+        byName.set(key, label);
+        await labelStore.put(label);
+      }
+      nextIds.push(label.id);
+    }
+    idea.labels = [...new Set(nextIds)];
+    await ideaStore.put(idea);
+  }
+}
+
 export async function ensureSeed(): Promise<void> {
   const database = await db();
+  if ((await database.count("labels")) === 0) {
+    for (const label of SEED_LABELS) {
+      await database.put("labels", label);
+    }
+  }
   const count = await database.count("ideas");
   if (count > 0) return;
   const now = Date.now();
@@ -302,11 +354,75 @@ export async function addComment(ideaId: string, body: string): Promise<Comment>
   return comment;
 }
 
-export function searchIdeas(ideas: Idea[], query: string): Idea[] {
+export async function listLabels(): Promise<Label[]> {
+  await ensureSeed();
+  const database = await db();
+  const all = await database.getAll("labels");
+  return all.sort((a, b) => a.name.localeCompare(b.name, "es"));
+}
+
+export async function createLabel(name: string, color?: string): Promise<Label> {
+  const normalized = normalizeLabelName(name);
+  if (!normalized) throw new Error("El nombre es obligatorio");
+  const database = await db();
+  const all = await database.getAll("labels");
+  if (all.some((label) => label.name.toLowerCase() === normalized.toLowerCase())) {
+    throw new Error("Ya existe una etiqueta con ese nombre");
+  }
+  const label: Label = {
+    id: uid(),
+    name: normalized,
+    color: color ?? nextLabelColor(all),
+  };
+  await database.put("labels", label);
+  return label;
+}
+
+export async function updateLabel(id: string, patch: { name?: string; color?: string }): Promise<Label> {
+  const database = await db();
+  const current = await database.get("labels", id);
+  if (!current) throw new Error("Etiqueta no encontrada");
+  const name = patch.name !== undefined ? normalizeLabelName(patch.name) : current.name;
+  if (!name) throw new Error("El nombre es obligatorio");
+  if (patch.name !== undefined) {
+    const all = await database.getAll("labels");
+    if (all.some((label) => label.id !== id && label.name.toLowerCase() === name.toLowerCase())) {
+      throw new Error("Ya existe una etiqueta con ese nombre");
+    }
+  }
+  const next: Label = {
+    ...current,
+    name,
+    color: patch.color ?? current.color,
+  };
+  await database.put("labels", next);
+  return next;
+}
+
+export async function deleteLabel(id: string): Promise<void> {
+  const database = await db();
+  const tx = database.transaction(["labels", "ideas"], "readwrite");
+  await tx.objectStore("labels").delete(id);
+  const ideas = await tx.objectStore("ideas").getAll();
+  const now = Date.now();
+  for (const idea of ideas) {
+    if (!idea.labels.includes(id)) continue;
+    await tx.objectStore("ideas").put({
+      ...idea,
+      labels: idea.labels.filter((labelId) => labelId !== id),
+      updatedAt: now,
+    });
+  }
+  await tx.done;
+}
+
+export function searchIdeas(ideas: Idea[], query: string, catalog: Label[] = []): Idea[] {
   const q = query.trim().toLowerCase();
   if (!q) return ideas;
+  const names = new Map(catalog.map((label) => [label.id, label.name]));
   return ideas.filter((idea) => {
-    const hay = `${idea.identifier} ${idea.title} ${idea.description} ${idea.labels.join(" ")}`.toLowerCase();
+    const labelText = idea.labels.map((id) => names.get(id) ?? id).join(" ");
+    const hay = `${idea.identifier} ${idea.title} ${idea.description} ${labelText}`.toLowerCase();
     return hay.includes(q);
   });
 }

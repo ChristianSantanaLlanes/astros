@@ -1,15 +1,17 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AnimatePresence } from "motion/react";
-import { addComment, listComments } from "../db";
+import { addComment, createLabel, deleteLabel, listComments, updateLabel } from "../db";
 import { formatRelative, formatTime } from "../format";
 import { CloseIcon, ForgeMark, PriorityIcon, StatusIcon } from "../icons";
 import {
-  LABEL_COLORS,
   priorityLabel,
+  resolveLabels,
   statusLabel,
   type Comment,
   type Idea,
+  type Label,
 } from "../types";
+import { LabelMenu } from "./LabelMenu";
 import { PriorityMenu } from "./PriorityMenu";
 import { StatusMenu } from "./StatusMenu";
 
@@ -30,14 +32,18 @@ function commentAuthor(comment: Comment) {
 
 export function Detail({
   idea,
+  labels,
   onBack,
   onChange,
+  onRefresh,
   onDelete,
   onOpenCanvas,
 }: {
   idea: Idea;
+  labels: Label[];
   onBack: () => void;
   onChange: (patch: Partial<Pick<Idea, "title" | "description" | "status" | "priority" | "labels">>) => void;
+  onRefresh: () => void;
   onDelete: () => void;
   onOpenCanvas: () => void;
 }) {
@@ -46,7 +52,10 @@ export function Detail({
   const [comments, setComments] = useState<Comment[]>([]);
   const [draft, setDraft] = useState("");
   const [now] = useState(() => Date.now());
-  const [propMenu, setPropMenu] = useState<{ kind: "status" | "priority"; x: number; y: number } | null>(null);
+  const [propMenu, setPropMenu] = useState<{ kind: "status" | "priority" | "labels"; x: number; y: number } | null>(
+    null,
+  );
+  const assigned = resolveLabels(idea.labels, labels);
   const titleRef = useRef<HTMLTextAreaElement>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const sending = useRef(false);
@@ -229,18 +238,35 @@ export function Detail({
         </div>
         <div className="prop">
           <div className="k">Etiquetas</div>
-          <div className="v labels-v">
-            {idea.labels.length === 0 ? (
+          <button
+            className="v labels-v"
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded={propMenu?.kind === "labels"}
+            aria-label={
+              assigned.length === 0
+                ? "Etiquetas: ninguna"
+                : `Etiquetas: ${assigned.map((label) => label.name).join(", ")}`
+            }
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              const r = e.currentTarget.getBoundingClientRect();
+              setPropMenu((current) =>
+                current?.kind === "labels" ? null : { kind: "labels", x: r.left, y: r.bottom + 4 },
+              );
+            }}
+          >
+            {assigned.length === 0 ? (
               <span className="muted">Ninguna</span>
             ) : (
-              idea.labels.map((label) => (
-                <span className="label" key={label}>
-                  <span className="dot" style={{ background: LABEL_COLORS[label] ?? "#8a8f98" }} />
-                  {label}
+              assigned.map((label) => (
+                <span className="label" key={label.id}>
+                  <span className="dot" style={{ background: label.color }} />
+                  {label.name}
                 </span>
               ))
             )}
-          </div>
+          </button>
         </div>
         <div className="prop">
           <div className="k">Creada</div>
@@ -278,6 +304,38 @@ export function Detail({
             onPick={(priority) => {
               onChange({ priority });
               setPropMenu(null);
+            }}
+          />
+        ) : null}
+        {propMenu?.kind === "labels" ? (
+          <LabelMenu
+            key="labels"
+            x={propMenu.x}
+            y={propMenu.y}
+            labels={labels}
+            selected={idea.labels}
+            onClose={() => setPropMenu(null)}
+            onToggle={(id) => {
+              const next = idea.labels.includes(id)
+                ? idea.labels.filter((labelId) => labelId !== id)
+                : [...idea.labels, id];
+              onChange({ labels: next });
+            }}
+            onCreate={async (name) => {
+              const created = await createLabel(name);
+              onChange({ labels: [...idea.labels, created.id] });
+            }}
+            onRename={async (id, name) => {
+              await updateLabel(id, { name });
+              onRefresh();
+            }}
+            onRecolor={async (id, color) => {
+              await updateLabel(id, { color });
+              onRefresh();
+            }}
+            onDelete={async (id) => {
+              await deleteLabel(id);
+              onRefresh();
             }}
           />
         ) : null}
